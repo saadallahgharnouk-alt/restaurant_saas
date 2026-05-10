@@ -1,12 +1,15 @@
 <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64" width="64" height="64" role="img" aria-label="RestauHub mark">
   <defs>
     <linearGradient id="rm" x1="0" y1="0" x2="1" y2="1">
-      <stop offset="0%" stop-color="#E86F4E"/>
-      <stop offset="100%" stop-color="#B13D2A"/>
+      <stop offset="0%" stop-color="#C84F2B"/>
+      <stop offset="100%" stop-color="#8E2F14"/>
     </linearGradient>
   </defs>
-  <!-- rounded square base (Claude-style) -->
-  <rect x="4" y="4" width="56" height="56" rx="16" fill="#F5EFE3"/>
+  <!-- parchment rounded square, indigo border for zellij feel -->
+  <rect x="4" y="4" width="56" height="56" rx="16" fill="#FAF4E4" stroke="#15213B" stroke-opacity="0.12" stroke-width="1"/>
+  <!-- faint 8-point zellij star in the background -->
+  <path d="M32 12 L38 24 L50 24 L41 32 L44 44 L32 38 L20 44 L23 32 L14 24 L26 24 Z"
+        fill="none" stroke="#15213B" stroke-opacity="0.10" stroke-width="1"/>
   <!-- stacked flame petals forming an R -->
   <path d="M20 46 V22 Q20 18 24 18 H36 Q44 18 44 26 Q44 32 38 34 L46 46"
         fill="none" stroke="url(#rm)" stroke-width="4.5" stroke-linecap="round" stroke-linejoin="round"/>
