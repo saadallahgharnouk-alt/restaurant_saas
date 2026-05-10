@@ -11,8 +11,8 @@ html {
 }
 
 body {
-  background: #F5EFE3;
-  color: #1C1814;
+  background: #F1E8D3;
+  color: #15213B;
   font-family: 'Inter', system-ui, -apple-system, sans-serif;
   font-feature-settings: 'ss01', 'cv11';
   -webkit-font-smoothing: antialiased;
@@ -31,8 +31,8 @@ a { color: inherit; text-decoration: none; }
 button, input, textarea, select { font: inherit; color: inherit; }
 
 ::selection {
-  background: #E86F4E;
-  color: #FFFBF1;
+  background: #C84F2B;
+  color: #FAF4E4;
 }
 
 /* reduced motion guard */
