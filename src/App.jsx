@@ -2,6 +2,9 @@ import React from 'react';
 import { BrowserRouter, Routes, Route } from 'react-router-dom';
 import './App.css';
 
+import { AuthProvider, AuthGate } from './lib/auth';
+import { ContentProvider } from './lib/content-store';
+
 import EnhancedLayout     from './components/EnhancedLayout';
 import Landing            from './app/landing';
 import Dashboard          from './app/enhanced-dashboard';
@@ -13,47 +16,90 @@ import RestaurantList     from './pages/RestaurantList';
 import KitchenBoard       from './app/kbs';
 import QRStudio           from './app/qr';
 import ScanMenu           from './app/scan-menu';
+import ContentCMS         from './app/admin/content';
 
 /**
- * Three routing trees, by intent:
+ * Routing trees:
  *
- *   /m/:restaurantId   → public customer menu. NO chrome.
- *   /                  → marketing landing. Admin shell included (with nav
- *                         to actually reach the app).
+ *   /m/:restaurantId   → public customer menu. NO chrome, NO auth.
+ *   /                  → marketing landing. Admin shell included. NO auth.
  *   /dashboard, /qr,
- *   /menu, /kitchen,
- *   /order, /analytics,
- *   /restaurants       → admin app inside EnhancedLayout.
+ *   /menu, /menu/manage,
+ *   /kitchen, /order,
+ *   /analytics,
+ *   /restaurants,
+ *   /admin/*           → admin app inside EnhancedLayout, behind AuthGate.
  */
 export default function App() {
   return (
-    <BrowserRouter>
-      <Routes>
-        {/* Public QR scan — no admin shell */}
-        <Route path="/m/:restaurantId" element={<ScanMenu />} />
+    <AuthProvider>
+      <ContentProvider>
+        <BrowserRouter>
+          <Routes>
+            {/* Public QR scan — no admin shell, no auth */}
+            <Route path="/m/:restaurantId" element={<ScanMenu />} />
 
-        {/* Everything else lives inside the admin shell */}
-        <Route
-          path="*"
-          element={
-            <EnhancedLayout>
-              <Routes>
-                <Route path="/"             element={<Landing />} />
-                <Route path="/dashboard"    element={<Dashboard />} />
-                <Route path="/restaurants"  element={<RestaurantList />} />
-                <Route path="/menu"         element={<EnhancedMenuPage />} />
-                <Route path="/menu/manage"  element={<MenuManagement />} />
-                <Route path="/kitchen"      element={<KitchenBoard />} />
-                <Route path="/order"        element={<OrderCart />} />
-                <Route path="/analytics"    element={<AnalyticsDashboard />} />
-                <Route path="/qr"           element={<QRStudio />} />
-                <Route path="*"             element={<NotFound />} />
-              </Routes>
-            </EnhancedLayout>
-          }
-        />
-      </Routes>
-    </BrowserRouter>
+            {/* Everything else lives inside the admin shell */}
+            <Route
+              path="*"
+              element={
+                <EnhancedLayout>
+                  <Routes>
+                    {/* Public: landing page — no auth required */}
+                    <Route path="/" element={<Landing />} />
+
+                    {/* Admin routes — behind auth gate */}
+                    <Route
+                      path="/dashboard"
+                      element={<AuthGate><Dashboard /></AuthGate>}
+                    />
+                    <Route
+                      path="/restaurants"
+                      element={<AuthGate><RestaurantList /></AuthGate>}
+                    />
+                    <Route
+                      path="/menu"
+                      element={<AuthGate><EnhancedMenuPage /></AuthGate>}
+                    />
+                    <Route
+                      path="/menu/manage"
+                      element={<AuthGate><MenuManagement /></AuthGate>}
+                    />
+                    <Route
+                      path="/kitchen"
+                      element={<AuthGate><KitchenBoard /></AuthGate>}
+                    />
+                    <Route
+                      path="/order"
+                      element={<AuthGate><OrderCart /></AuthGate>}
+                    />
+                    <Route
+                      path="/analytics"
+                      element={<AuthGate><AnalyticsDashboard /></AuthGate>}
+                    />
+                    <Route
+                      path="/qr"
+                      element={<AuthGate><QRStudio /></AuthGate>}
+                    />
+                    {/* CMS routes */}
+                    <Route
+                      path="/admin/content/*"
+                      element={<AuthGate><ContentCMS /></AuthGate>}
+                    />
+                    <Route
+                      path="/admin"
+                      element={<AuthGate><ContentCMS /></AuthGate>}
+                    />
+
+                    <Route path="*" element={<NotFound />} />
+                  </Routes>
+                </EnhancedLayout>
+              }
+            />
+          </Routes>
+        </BrowserRouter>
+      </ContentProvider>
+    </AuthProvider>
   );
 }
 

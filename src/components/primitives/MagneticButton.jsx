@@ -23,9 +23,14 @@ export default function MagneticButton({
   ...rest
 }) {
   const ref = useRef(null);
+  const reducedMotion = useRef(
+    typeof window !== 'undefined' &&
+    window.matchMedia?.('(prefers-reduced-motion: reduce)').matches
+  );
 
   const onMove = useCallback(
     (e) => {
+      if (reducedMotion.current) return;
       const el = ref.current;
       if (!el) return;
       const r = el.getBoundingClientRect();
@@ -39,6 +44,7 @@ export default function MagneticButton({
   );
 
   const onLeave = useCallback(() => {
+    if (reducedMotion.current) return;
     const el = ref.current;
     if (!el) return;
     el.style.transform = '';
