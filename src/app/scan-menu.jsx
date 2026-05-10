@@ -1,11 +1,12 @@
 import React, { useEffect, useMemo, useState } from 'react';
 import { useParams, useSearchParams } from 'react-router-dom';
+import { GrainOverlay, Reveal } from '../components/primitives';
 
 /**
- * Public scan menu — this is what a customer sees after scanning a QR card.
- * It is intentionally minimal: no admin chrome, no sidebar, mobile-first.
+ * Public scan menu — what a customer sees after scanning a table QR.
+ * No admin chrome. Cream paper, Fraunces display, ember accents.
  *
- *   /m/:id          → full menu for restaurant
+ *   /m/:id          → full menu for a restaurant
  *   /m/:id?t=5      → same, tagged with table number
  */
 
@@ -16,7 +17,7 @@ const DEMO_MENU = [
   { id: 14, category: 'Mains',    name: 'Classic Burger',      price: 12.99, description: 'Prime beef, aged cheddar, brioche bun.',                 image: 'https://images.unsplash.com/photo-1568901346375-23c9450c58cd?auto=format&fit=crop&w=600&q=60' },
   { id: 15, category: 'Mains',    name: 'Spaghetti Carbonara', price: 13.99, description: 'Guanciale, pecorino, fresh egg yolk.',                   image: 'https://images.unsplash.com/photo-1608897013039-887f21d8c804?auto=format&fit=crop&w=600&q=60' },
   { id: 16, category: 'Mains',    name: 'Grilled Salmon',      price: 18.99, description: 'Atlantic salmon fillet, lemon butter, seasonal greens.', image: 'https://images.unsplash.com/photo-1467003909585-2f8a72700288?auto=format&fit=crop&w=600&q=60' },
-  { id: 17, category: 'Desserts', name: 'Tiramisu',            price: 7.00,  description: 'Classic Italian with mascarpone and espresso.',          image: 'https://images.unsplash.com/photo-1571877227200-a0d98ea607e9?auto=format&fit=crop&w=600&q=60' },
+  { id: 17, category: 'Desserts', name: 'Tiramisu',            price: 7.00,  description: 'Classic Italian, mascarpone and espresso.',              image: 'https://images.unsplash.com/photo-1571877227200-a0d98ea607e9?auto=format&fit=crop&w=600&q=60' },
   { id: 18, category: 'Desserts', name: 'Chocolate Fondant',   price: 7.99,  description: 'Dark chocolate, molten centre, vanilla ice cream.',      image: 'https://images.unsplash.com/photo-1511911063855-2bf39afa5b2e?auto=format&fit=crop&w=600&q=60' },
   { id: 19, category: 'Drinks',   name: 'Sparkling Water',     price: 3.50,  description: '330ml San Pellegrino.',                                  image: 'https://images.unsplash.com/photo-1605217613423-0fb7860cf1e1?auto=format&fit=crop&w=600&q=60' },
   { id: 20, category: 'Drinks',   name: 'Americano',           price: 3.20,  description: 'Freshly pulled espresso, hot water.',                    image: 'https://images.unsplash.com/photo-1509042239860-f550ce710b93?auto=format&fit=crop&w=600&q=60' },
@@ -36,7 +37,7 @@ export default function ScanMenu() {
   const [placing, setPlacing]       = useState(false);
   const [placed, setPlaced]         = useState(null);
 
-  // Try to pull real data; otherwise quietly use the demo menu.
+  // Pull real data; fall back to the demo menu quietly.
   useEffect(() => {
     let cancelled = false;
 
@@ -50,57 +51,70 @@ export default function ScanMenu() {
         if (!cancelled && mr.ok) {
           const items = await mr.json();
           if (Array.isArray(items) && items.length > 0) {
-            setMenu(items.map(i => ({
-              id: i.id,
-              name: i.item_name || i.name,
-              price: Number(i.price),
-              description: i.description || '',
-              category: i.category || 'Menu',
-              image: i.image_url || null,
-            })));
+            setMenu(
+              items.map((i) => ({
+                id: i.id,
+                name: i.item_name || i.name,
+                price: Number(i.price),
+                description: i.description || '',
+                category: i.category || 'Menu',
+                image: i.image_url || null,
+              }))
+            );
           }
         }
-      } catch { /* backend offline → stay on demo menu */ }
-      finally { if (!cancelled) setLoading(false); }
+      } catch {
+        /* backend offline → stay on demo menu */
+      } finally {
+        if (!cancelled) setLoading(false);
+      }
     };
 
     load();
-    return () => { cancelled = true; };
+    return () => {
+      cancelled = true;
+    };
   }, [restaurantId]);
 
   // Derivations
   const categories = useMemo(
-    () => ['All', ...Array.from(new Set(menu.map(i => i.category || 'Menu')))],
+    () => ['All', ...Array.from(new Set(menu.map((i) => i.category || 'Menu')))],
     [menu]
   );
 
   const visible = useMemo(
-    () => activeCat === 'All' ? menu : menu.filter(i => (i.category || 'Menu') === activeCat),
+    () =>
+      activeCat === 'All'
+        ? menu
+        : menu.filter((i) => (i.category || 'Menu') === activeCat),
     [menu, activeCat]
   );
 
   const cartItems = useMemo(
-    () => menu
-      .filter(i => cart[i.id] > 0)
-      .map(i => ({ ...i, qty: cart[i.id] })),
+    () =>
+      menu
+        .filter((i) => cart[i.id] > 0)
+        .map((i) => ({ ...i, qty: cart[i.id] })),
     [menu, cart]
   );
 
   const totals = useMemo(() => {
     const subtotal = cartItems.reduce((s, i) => s + i.price * i.qty, 0);
-    const tax      = subtotal * 0.1;
-    const total    = subtotal + tax;
-    const count    = cartItems.reduce((s, i) => s + i.qty, 0);
+    const tax = subtotal * 0.1;
+    const total = subtotal + tax;
+    const count = cartItems.reduce((s, i) => s + i.qty, 0);
     return { subtotal, tax, total, count };
   }, [cartItems]);
 
-  const addItem    = id => setCart(c => ({ ...c, [id]: (c[id] || 0) + 1 }));
-  const removeItem = id => setCart(c => {
-    const n = { ...c };
-    if (!n[id]) return n;
-    if (n[id] > 1) n[id]--; else delete n[id];
-    return n;
-  });
+  const addItem = (id) => setCart((c) => ({ ...c, [id]: (c[id] || 0) + 1 }));
+  const removeItem = (id) =>
+    setCart((c) => {
+      const n = { ...c };
+      if (!n[id]) return n;
+      if (n[id] > 1) n[id]--;
+      else delete n[id];
+      return n;
+    });
 
   const placeOrder = async () => {
     if (totals.count === 0) return;
@@ -108,7 +122,12 @@ export default function ScanMenu() {
     const payload = {
       restaurant_id: restaurantId,
       table_number: table ? Number(table) : null,
-      items: cartItems.map(i => ({ id: i.id, name: i.name, qty: i.qty, price: i.price })),
+      items: cartItems.map((i) => ({
+        id: i.id,
+        name: i.name,
+        qty: i.qty,
+        price: i.price,
+      })),
       total_price: Number(totals.total.toFixed(2)),
     };
 
@@ -124,7 +143,6 @@ export default function ScanMenu() {
         total: totals.total,
       });
     } catch {
-      // Offline preview — still show confirmation so demo works.
       setPlaced({
         id: Math.floor(Math.random() * 9000 + 1000),
         total: totals.total,
@@ -136,11 +154,11 @@ export default function ScanMenu() {
     }
   };
 
-  // Group by category when showing All.
+  // Group by category when "All" is active.
   const grouped = useMemo(() => {
     if (activeCat !== 'All') return [[activeCat, visible]];
     const buckets = new Map();
-    visible.forEach(i => {
+    visible.forEach((i) => {
       const k = i.category || 'Menu';
       if (!buckets.has(k)) buckets.set(k, []);
       buckets.get(k).push(i);
@@ -148,21 +166,37 @@ export default function ScanMenu() {
     return Array.from(buckets.entries());
   }, [visible, activeCat]);
 
-  const brandName = restaurant?.name || 'RestauHub';
+  const brandName = restaurant?.name || 'Tonight&rsquo;s Menu';
 
   return (
     <div className="scan-wrap">
+      <GrainOverlay />
+
       {/* ── Hero ─────────────────────────────── */}
       <header className="scan-hero">
         <div className="scan-hero-top">
-          <img src="/logo-mark.svg" alt="" width="28" height="28" />
-          <span style={{
-            fontFamily: 'var(--font-mono)', fontSize: 10,
-            letterSpacing: '0.18em', color: '#818cf8',
-          }}>MENU · SCAN</span>
+          <img src="/logo-mark.svg" alt="" width="30" height="30" />
+          <span
+            style={{
+              fontFamily: 'var(--font-mono)',
+              fontSize: 11,
+              letterSpacing: '0.2em',
+              textTransform: 'uppercase',
+              color: 'var(--ember-deep)',
+            }}
+          >
+            Scan · Order
+          </span>
         </div>
 
-        <h1 className="scan-hero-title">{brandName}</h1>
+        <h1
+          className="scan-hero-title"
+          dangerouslySetInnerHTML={{
+            __html: restaurant?.name
+              ? restaurant.name
+              : 'Tonight&rsquo;s <em>menu.</em>',
+          }}
+        />
         {restaurant?.cuisine && (
           <p className="scan-hero-sub">{restaurant.cuisine} cuisine</p>
         )}
@@ -174,35 +208,44 @@ export default function ScanMenu() {
               Table {table}
             </span>
           )}
+          <span className="scan-chip scan-chip-muted">⏱ Live menu</span>
           <span className="scan-chip scan-chip-muted">
-            ⏱ Live menu
-          </span>
-          <span className="scan-chip scan-chip-muted">
-            🍽 {menu.length} dishes
+            {menu.length} dishes
           </span>
         </div>
       </header>
 
-      {/* Confirmation banner */}
+      {/* ── Order confirmation toast ─────────── */}
       {placed && (
         <div className="card scan-toast">
-          <span className="badge badge-green">ORDER SENT</span>
+          <span className="badge badge-sage">ORDER SENT</span>
           <div style={{ flex: 1 }}>
-            <p style={{ color: 'var(--text-hi)', fontWeight: 700, fontSize: 14 }}>
+            <p
+              style={{
+                color: 'var(--ink)',
+                fontWeight: 600,
+                fontSize: 15,
+                fontFamily: 'var(--font-display)',
+                letterSpacing: '-0.01em',
+              }}
+            >
               Thanks — order #{placed.id} is with the kitchen.
             </p>
-            <p style={{ color: 'var(--text-mid)', fontSize: 12 }}>
-              Total ${placed.total.toFixed(2)}{table ? ` · Table ${table}` : ''}
+            <p style={{ color: 'var(--ink-mid)', fontSize: 12, marginTop: 2 }}>
+              Total ${placed.total.toFixed(2)}
+              {table ? ` · Table ${table}` : ''}
             </p>
           </div>
-          <button className="btn btn-ghost btn-sm" onClick={() => setPlaced(null)}>✕</button>
+          <button className="btn btn-ghost btn-sm" onClick={() => setPlaced(null)}>
+            Close
+          </button>
         </div>
       )}
 
-      {/* ── Category strip (sticky) ─────────── */}
+      {/* ── Sticky category bar ──────────────── */}
       <div className="scan-catbar">
         <div className="scan-catbar-inner">
-          {categories.map(c => {
+          {categories.map((c) => {
             const active = c === activeCat;
             return (
               <button
@@ -218,24 +261,40 @@ export default function ScanMenu() {
         </div>
       </div>
 
-      {/* ── Menu ─────────────────────────────── */}
+      {/* ── Menu list ────────────────────────── */}
       <main className="scan-main">
         {loading ? (
           <div className="empty-state">
             <div className="loading-spinner" />
-            <span>Loading menu…</span>
+            <span>Loading menu&hellip;</span>
           </div>
         ) : visible.length === 0 ? (
           <div className="empty-state">
-            <span style={{ fontSize: 28 }}>◈</span>
-            <span>No dishes in this category.</span>
+            <span
+              style={{
+                fontSize: 28,
+                color: 'var(--ember)',
+                fontFamily: 'var(--font-display)',
+              }}
+            >
+              ◈
+            </span>
+            <span>No dishes in this category yet.</span>
           </div>
         ) : (
           grouped.map(([cat, items]) => (
-            <section key={cat} className="scan-section">
-              <h2 className="scan-section-title">{cat}</h2>
+            <Reveal as="section" key={cat} className="scan-section">
+              <h2 className="scan-section-title">
+                {cat === 'All' ? (
+                  'Menu'
+                ) : (
+                  <>
+                    <em>{cat}</em>
+                  </>
+                )}
+              </h2>
               <div className="scan-list">
-                {items.map(item => (
+                {items.map((item) => (
                   <ScanItem
                     key={item.id}
                     item={item}
@@ -245,16 +304,26 @@ export default function ScanMenu() {
                   />
                 ))}
               </div>
-            </section>
+            </Reveal>
           ))
         )}
 
         <p className="scan-foot">
-          Powered by <strong style={{ color: 'var(--text-hi)' }}>RestauHub</strong> · QR ordering
+          Served by{' '}
+          <span
+            style={{
+              color: 'var(--ink)',
+              fontFamily: 'var(--font-display)',
+              fontStyle: 'italic',
+              fontWeight: 500,
+            }}
+          >
+            restauhub
+          </span>
         </p>
       </main>
 
-      {/* ── Sticky CTA ─────────────────────── */}
+      {/* ── Floating CTA ─────────────────────── */}
       {totals.count > 0 && !drawerOpen && (
         <button
           type="button"
@@ -267,48 +336,100 @@ export default function ScanMenu() {
         </button>
       )}
 
-      {/* ── Cart drawer ────────────────────── */}
+      {/* ── Cart drawer ──────────────────────── */}
       {drawerOpen && (
-        <div className="scan-drawer-wrap" onClick={() => setDrawerOpen(false)}>
-          <div className="scan-drawer" onClick={e => e.stopPropagation()}>
+        <div
+          className="scan-drawer-wrap"
+          onClick={() => setDrawerOpen(false)}
+        >
+          <div className="scan-drawer" onClick={(e) => e.stopPropagation()}>
             <div className="scan-drawer-head">
-              <h2 style={{ fontFamily: 'var(--font-display)', fontSize: 18, fontWeight: 800, color: 'var(--text-hi)' }}>
-                Your order
+              <h2
+                style={{
+                  fontFamily: 'var(--font-display)',
+                  fontSize: 22,
+                  fontWeight: 440,
+                  letterSpacing: '-0.02em',
+                  color: 'var(--ink)',
+                }}
+              >
+                Your <em style={{ color: 'var(--ember-deep)', fontStyle: 'italic', fontWeight: 380 }}>order</em>
               </h2>
-              <button className="btn btn-ghost btn-sm" onClick={() => setDrawerOpen(false)}>✕</button>
+              <button
+                className="btn btn-ghost btn-sm"
+                onClick={() => setDrawerOpen(false)}
+              >
+                Close
+              </button>
             </div>
 
             <div className="scan-drawer-body">
-              {cartItems.map(i => (
+              {cartItems.map((i) => (
                 <div key={i.id} className="scan-drawer-row">
                   <div style={{ flex: 1, minWidth: 0 }}>
-                    <p style={{ color: 'var(--text-hi)', fontWeight: 600, fontSize: 14 }}>{i.name}</p>
-                    <p style={{ color: 'var(--text-mid)', fontSize: 11, fontFamily: 'var(--font-mono)' }}>
+                    <p
+                      style={{
+                        color: 'var(--ink)',
+                        fontWeight: 500,
+                        fontSize: 15,
+                        fontFamily: 'var(--font-display)',
+                        letterSpacing: '-0.015em',
+                      }}
+                    >
+                      {i.name}
+                    </p>
+                    <p
+                      style={{
+                        color: 'var(--ink-faint)',
+                        fontSize: 11,
+                        fontFamily: 'var(--font-mono)',
+                        letterSpacing: '0.04em',
+                        marginTop: 2,
+                      }}
+                    >
                       ${i.price.toFixed(2)} × {i.qty}
                     </p>
                   </div>
 
                   <div className="scan-qty">
-                    <button onClick={() => removeItem(i.id)} aria-label="Decrease">−</button>
+                    <button
+                      onClick={() => removeItem(i.id)}
+                      aria-label="Decrease"
+                    >
+                      −
+                    </button>
                     <span>{i.qty}</span>
-                    <button onClick={() => addItem(i.id)} aria-label="Increase">+</button>
+                    <button onClick={() => addItem(i.id)} aria-label="Increase">
+                      +
+                    </button>
                   </div>
 
-                  <span className="scan-row-total">${(i.price * i.qty).toFixed(2)}</span>
+                  <span className="scan-row-total">
+                    ${(i.price * i.qty).toFixed(2)}
+                  </span>
                 </div>
               ))}
             </div>
 
             <div className="scan-drawer-foot">
-              <Row label="Subtotal"  value={`$${totals.subtotal.toFixed(2)}`} />
+              <Row label="Subtotal" value={`$${totals.subtotal.toFixed(2)}`} />
               <Row label="Tax (10%)" value={`$${totals.tax.toFixed(2)}`} />
-              <Row label="Total"     value={`$${totals.total.toFixed(2)}`} bold />
+              <Row
+                label="Total"
+                value={`$${totals.total.toFixed(2)}`}
+                bold
+              />
 
               <button
-                className="btn btn-primary"
+                className="btn btn-ember"
                 disabled={placing || totals.count === 0}
                 onClick={placeOrder}
-                style={{ marginTop: 10, width: '100%', padding: '14px 16px' }}
+                style={{
+                  marginTop: 12,
+                  width: '100%',
+                  padding: '14px 16px',
+                  justifyContent: 'center',
+                }}
               >
                 {placing
                   ? 'Sending…'
@@ -316,8 +437,15 @@ export default function ScanMenu() {
                     ? `Send to kitchen · Table ${table}`
                     : 'Send to kitchen'}
               </button>
-              <p style={{ fontSize: 11, color: 'var(--text-mid)', textAlign: 'center', marginTop: 8 }}>
-                You'll pay at the counter / with your server.
+              <p
+                style={{
+                  fontSize: 11,
+                  color: 'var(--ink-faint)',
+                  textAlign: 'center',
+                  marginTop: 6,
+                }}
+              >
+                You&rsquo;ll pay at the counter or with your server.
               </p>
             </div>
           </div>
@@ -329,14 +457,33 @@ export default function ScanMenu() {
 
 function Row({ label, value, bold }) {
   return (
-    <div style={{ display: 'flex', justifyContent: 'space-between' }}>
-      <span style={{ color: 'var(--text-mid)', fontSize: bold ? 14 : 13, fontWeight: bold ? 700 : 400 }}>{label}</span>
-      <span style={{
-        color: 'var(--text-hi)',
-        fontSize: bold ? 18 : 13,
-        fontWeight: bold ? 800 : 600,
-        fontFamily: bold ? 'var(--font-display)' : 'var(--font-body)',
-      }}>{value}</span>
+    <div
+      style={{
+        display: 'flex',
+        justifyContent: 'space-between',
+        alignItems: 'baseline',
+      }}
+    >
+      <span
+        style={{
+          color: bold ? 'var(--ink)' : 'var(--ink-mid)',
+          fontSize: bold ? 15 : 13,
+          fontWeight: bold ? 500 : 400,
+        }}
+      >
+        {label}
+      </span>
+      <span
+        style={{
+          color: bold ? 'var(--ember-deep)' : 'var(--ink)',
+          fontSize: bold ? 22 : 13,
+          fontWeight: bold ? 500 : 500,
+          fontFamily: bold ? 'var(--font-display)' : 'var(--font-body)',
+          letterSpacing: bold ? '-0.02em' : '0',
+        }}
+      >
+        {value}
+      </span>
     </div>
   );
 }
@@ -345,7 +492,12 @@ function ScanItem({ item, qty, onAdd, onRemove }) {
   return (
     <article className="scan-item">
       {item.image ? (
-        <img src={item.image} alt={item.name} loading="lazy" className="scan-item-img" />
+        <img
+          src={item.image}
+          alt={item.name}
+          loading="lazy"
+          className="scan-item-img"
+        />
       ) : (
         <div className="scan-item-img scan-item-img-empty">NO IMAGE</div>
       )}
@@ -359,12 +511,18 @@ function ScanItem({ item, qty, onAdd, onRemove }) {
           <span className="scan-item-price">${item.price.toFixed(2)}</span>
 
           {qty === 0 ? (
-            <button type="button" className="scan-add" onClick={onAdd}>+ Add</button>
+            <button type="button" className="scan-add" onClick={onAdd}>
+              + Add
+            </button>
           ) : (
             <div className="scan-qty">
-              <button onClick={onRemove} aria-label="Decrease">−</button>
+              <button onClick={onRemove} aria-label="Decrease">
+                −
+              </button>
               <span>{qty}</span>
-              <button onClick={onAdd} aria-label="Increase">+</button>
+              <button onClick={onAdd} aria-label="Increase">
+                +
+              </button>
             </div>
           )}
         </div>

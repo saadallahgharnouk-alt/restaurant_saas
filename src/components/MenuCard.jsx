@@ -1,23 +1,24 @@
 import React, { useState } from 'react';
+import { TiltCard } from './primitives';
 
 const CAT_ACCENT = {
-  Burgers:  '#f59e0b',
-  Pizza:    '#ef4444',
-  Pasta:    '#ec4899',
-  Salads:   '#22c55e',
-  Seafood:  '#38bdf8',
-  Desserts: '#a855f7',
+  Burgers:  '#D4932E',
+  Pizza:    '#B13D2A',
+  Pasta:    '#6B3D5C',
+  Salads:   '#6B8E5A',
+  Seafood:  '#4A7A8C',
+  Desserts: '#8B5A7A',
 };
 
 /**
- * Elegant menu item card. Works for both the admin menu list
- * and the public scan page (pass compact=true to shrink it).
+ * Elegant menu item card on cream paper. Works for both the admin menu
+ * list and the public scan page (pass compact=true to shrink it).
  */
 export default function MenuCard({ item, onAddToCart, compact = false }) {
-  const [fav, setFav] = useState(false);
+  const [fav, setFav]     = useState(false);
   const [adding, setAdding] = useState(false);
 
-  const accent = CAT_ACCENT[item.category] || 'var(--accent)';
+  const accent = CAT_ACCENT[item.category] || 'var(--ember-deep)';
   const finalPrice = item.price * (1 - (item.discount || 0) / 100);
   const hasDiscount = (item.discount || 0) > 0;
 
@@ -28,152 +29,238 @@ export default function MenuCard({ item, onAddToCart, compact = false }) {
   };
 
   return (
-    <div
+    <TiltCard
       className="card"
-      style={{
-        padding: compact ? 14 : 18,
-        display: 'flex',
-        flexDirection: 'column',
-        gap: 12,
-        position: 'relative',
-        overflow: 'hidden',
-      }}
+      max={5}
+      glare={false}
     >
-      {hasDiscount && (
-        <div style={{
-          position: 'absolute', top: 10, right: 10, zIndex: 2,
-          background: 'var(--red)', color: '#fff',
-          padding: '4px 10px', borderRadius: 99,
-          fontFamily: 'var(--font-mono)', fontSize: 10, fontWeight: 700,
-          letterSpacing: '0.06em',
-          boxShadow: '0 6px 16px rgba(239,68,68,0.35)',
-        }}>
-          -{item.discount}%
-        </div>
-      )}
-
-      {/* Image */}
-      <div style={{
-        width: '100%',
-        aspectRatio: '16 / 10',
-        borderRadius: 12,
-        overflow: 'hidden',
-        background: 'var(--surface2)',
-        border: '1px solid var(--border)',
-        position: 'relative',
-      }}>
-        {item.image ? (
-          <img
-            src={item.image}
-            alt={item.name}
-            loading="lazy"
-            style={{ width: '100%', height: '100%', objectFit: 'cover', display: 'block' }}
-          />
-        ) : (
-          <div style={{
-            width: '100%', height: '100%',
-            display: 'flex', alignItems: 'center', justifyContent: 'center',
-            fontFamily: 'var(--font-mono)', fontSize: 11, color: 'var(--text-mid)',
-            letterSpacing: '0.1em',
-          }}>
-            NO IMAGE
+      <div
+        style={{
+          padding: compact ? 14 : 18,
+          display: 'flex',
+          flexDirection: 'column',
+          gap: 14,
+          position: 'relative',
+          overflow: 'hidden',
+        }}
+      >
+        {hasDiscount && (
+          <div
+            style={{
+              position: 'absolute',
+              top: 12,
+              right: 12,
+              zIndex: 2,
+              background: 'var(--ember)',
+              color: 'var(--paper-mist)',
+              padding: '4px 12px',
+              borderRadius: 99,
+              fontFamily: 'var(--font-mono)',
+              fontSize: 10,
+              fontWeight: 600,
+              letterSpacing: '0.06em',
+              boxShadow: '0 6px 16px rgba(232,111,78,0.4)',
+            }}
+          >
+            -{item.discount}%
           </div>
         )}
 
-        {/* Category chip on image */}
-        {item.category && (
-          <span style={{
-            position: 'absolute', top: 10, left: 10,
-            padding: '3px 10px', borderRadius: 99,
-            background: 'rgba(9,9,11,0.7)',
-            backdropFilter: 'blur(8px)',
-            border: `1px solid ${accent}55`,
-            color: accent,
-            fontFamily: 'var(--font-mono)', fontSize: 10, fontWeight: 600,
-            letterSpacing: '0.08em', textTransform: 'uppercase',
-          }}>{item.category}</span>
-        )}
-      </div>
-
-      {/* Header row */}
-      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', gap: 8 }}>
-        <h3 style={{
-          fontFamily: 'var(--font-display)',
-          fontSize: compact ? 15 : 16,
-          fontWeight: 700,
-          color: 'var(--text-hi)',
-          letterSpacing: '-0.3px',
-          lineHeight: 1.25,
-          flex: 1,
-        }}>{item.name}</h3>
-
-        <button
-          type="button"
-          onClick={() => setFav(v => !v)}
-          aria-label={fav ? 'Remove from favourites' : 'Add to favourites'}
+        {/* Image */}
+        <div
           style={{
-            width: 30, height: 30, borderRadius: 8,
-            border: '1px solid var(--border)',
-            background: fav ? 'rgba(239,68,68,0.12)' : 'var(--surface2)',
-            color: fav ? 'var(--red)' : 'var(--text-mid)',
-            cursor: 'pointer',
-            display: 'flex', alignItems: 'center', justifyContent: 'center',
-            fontSize: 14,
-            transition: 'background 0.2s, color 0.2s',
-            flexShrink: 0,
+            width: '100%',
+            aspectRatio: '16 / 10',
+            borderRadius: 14,
+            overflow: 'hidden',
+            background: 'var(--paper-soft)',
+            border: '1px solid var(--rule)',
+            position: 'relative',
           }}
         >
-          {fav ? '♥' : '♡'}
-        </button>
-      </div>
+          {item.image ? (
+            <img
+              src={item.image}
+              alt={item.name}
+              loading="lazy"
+              style={{
+                width: '100%',
+                height: '100%',
+                objectFit: 'cover',
+                display: 'block',
+                transition: 'transform 1.2s var(--ease-out)',
+              }}
+              onMouseEnter={(e) =>
+                (e.currentTarget.style.transform = 'scale(1.05)')
+              }
+              onMouseLeave={(e) =>
+                (e.currentTarget.style.transform = 'scale(1)')
+              }
+            />
+          ) : (
+            <div
+              style={{
+                width: '100%',
+                height: '100%',
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'center',
+                fontFamily: 'var(--font-mono)',
+                fontSize: 11,
+                color: 'var(--ink-faint)',
+                letterSpacing: '0.1em',
+              }}
+            >
+              NO IMAGE
+            </div>
+          )}
 
-      {/* Description */}
-      {item.description && (
-        <p style={{
-          color: 'var(--text-mid)',
-          fontSize: 12,
-          lineHeight: 1.55,
-          display: '-webkit-box',
-          WebkitLineClamp: 2,
-          WebkitBoxOrient: 'vertical',
-          overflow: 'hidden',
-        }}>{item.description}</p>
-      )}
-
-      {/* Price + CTA */}
-      <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 10, marginTop: 'auto' }}>
-        <div style={{ display: 'flex', alignItems: 'baseline', gap: 8 }}>
-          <span style={{
-            fontFamily: 'var(--font-display)',
-            fontSize: compact ? 18 : 20,
-            fontWeight: 800,
-            color: 'var(--green)',
-            letterSpacing: '-0.4px',
-          }}>${finalPrice.toFixed(2)}</span>
-          {hasDiscount && (
-            <span style={{
-              fontFamily: 'var(--font-mono)',
-              fontSize: 11,
-              color: 'var(--text-mid)',
-              textDecoration: 'line-through',
-            }}>${item.price.toFixed(2)}</span>
+          {item.category && (
+            <span
+              style={{
+                position: 'absolute',
+                top: 12,
+                left: 12,
+                padding: '4px 12px',
+                borderRadius: 99,
+                background: 'var(--paper-mist)',
+                backdropFilter: 'blur(8px)',
+                border: `1px solid ${accent}55`,
+                color: accent,
+                fontFamily: 'var(--font-mono)',
+                fontSize: 10,
+                fontWeight: 500,
+                letterSpacing: '0.1em',
+                textTransform: 'uppercase',
+              }}
+            >
+              {item.category}
+            </span>
           )}
         </div>
 
-        {onAddToCart && (
-          <button
-            type="button"
-            onClick={handleAdd}
-            className="btn btn-primary btn-sm"
+        {/* Header row */}
+        <div
+          style={{
+            display: 'flex',
+            justifyContent: 'space-between',
+            alignItems: 'flex-start',
+            gap: 10,
+          }}
+        >
+          <h3
             style={{
-              transform: adding ? 'scale(0.92)' : 'scale(1)',
-              transition: 'transform 0.2s var(--ease-spring)',
+              fontFamily: 'var(--font-display)',
+              fontSize: compact ? 17 : 19,
+              fontWeight: 500,
+              color: 'var(--ink)',
+              letterSpacing: '-0.018em',
+              lineHeight: 1.2,
+              flex: 1,
             }}
           >
-            {adding ? '✓ Added' : '+ Add'}
+            {item.name}
+          </h3>
+
+          <button
+            type="button"
+            onClick={() => setFav((v) => !v)}
+            aria-label={fav ? 'Remove from favourites' : 'Add to favourites'}
+            style={{
+              width: 32,
+              height: 32,
+              borderRadius: 10,
+              border: '1px solid var(--rule)',
+              background: fav ? 'var(--ember-tint)' : 'var(--paper-soft)',
+              color: fav ? 'var(--ember-deep)' : 'var(--ink-faint)',
+              cursor: 'pointer',
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'center',
+              fontSize: 14,
+              transition: 'background 0.2s, color 0.2s, transform 0.2s',
+              flexShrink: 0,
+            }}
+            onMouseEnter={(e) =>
+              (e.currentTarget.style.transform = 'scale(1.08)')
+            }
+            onMouseLeave={(e) =>
+              (e.currentTarget.style.transform = 'scale(1)')
+            }
+          >
+            {fav ? '♥' : '♡'}
           </button>
+        </div>
+
+        {item.description && (
+          <p
+            style={{
+              color: 'var(--ink-mid)',
+              fontSize: 13,
+              lineHeight: 1.55,
+              display: '-webkit-box',
+              WebkitLineClamp: 2,
+              WebkitBoxOrient: 'vertical',
+              overflow: 'hidden',
+            }}
+          >
+            {item.description}
+          </p>
         )}
+
+        <div
+          style={{
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'space-between',
+            gap: 10,
+            marginTop: 'auto',
+            paddingTop: 6,
+          }}
+        >
+          <div
+            style={{ display: 'flex', alignItems: 'baseline', gap: 10 }}
+          >
+            <span
+              style={{
+                fontFamily: 'var(--font-display)',
+                fontSize: compact ? 20 : 24,
+                fontWeight: 500,
+                color: 'var(--ember-deep)',
+                letterSpacing: '-0.025em',
+              }}
+            >
+              ${finalPrice.toFixed(2)}
+            </span>
+            {hasDiscount && (
+              <span
+                style={{
+                  fontFamily: 'var(--font-mono)',
+                  fontSize: 12,
+                  color: 'var(--ink-faint)',
+                  textDecoration: 'line-through',
+                }}
+              >
+                ${item.price.toFixed(2)}
+              </span>
+            )}
+          </div>
+
+          {onAddToCart && (
+            <button
+              type="button"
+              onClick={handleAdd}
+              className="btn btn-ember btn-sm"
+              style={{
+                transform: adding ? 'scale(0.92)' : 'scale(1)',
+                transition: 'transform 0.2s var(--ease-spring)',
+              }}
+            >
+              {adding ? '✓ Added' : '+ Add'}
+            </button>
+          )}
+        </div>
       </div>
-    </div>
+    </TiltCard>
   );
 }
