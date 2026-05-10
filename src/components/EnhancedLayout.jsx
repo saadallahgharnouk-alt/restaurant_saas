@@ -1,109 +1,93 @@
-import React from 'react';
-import { Link } from 'react-router-dom';
-import { motion } from 'framer-motion';
-import { Menu, X, Home, UtensilsCrossed, BarChart3, Zap, QrCode, ShoppingCart } from 'lucide-react';
+import React, { useState, useEffect } from 'react';
+import { Link, useLocation } from 'react-router-dom';
+
+const NAV = [
+  { path: '/',             label: 'Dashboard',   icon: '◉' },
+  { path: '/restaurants',  label: 'Restaurants', icon: '◈' },
+  { path: '/menu',         label: 'Menu',        icon: '◍' },
+  { path: '/kitchen',      label: 'Kitchen',     icon: '✦' },
+  { path: '/order',        label: 'Orders',      icon: '⬢' },
+  { path: '/qr',           label: 'QR Codes',    icon: '▦' },
+  { path: '/analytics',    label: 'Analytics',   icon: '◎' },
+];
 
 export default function EnhancedLayout({ children }) {
-  const [mobileMenuOpen, setMobileMenuOpen] = React.useState(false);
+  const location = useLocation();
+  const [open, setOpen] = useState(false);
+  const [scrolled, setScrolled] = useState(false);
 
-  const navItems = [
-    { icon: Home, label: 'Dashboard', path: '/' },
-    { icon: UtensilsCrossed, label: 'Menu', path: '/menu' },
-    { icon: ShoppingCart, label: 'Orders', path: '/order' },
-    { icon: QrCode, label: 'QR Codes', path: '/qr' },
-    { icon: BarChart3, label: 'Analytics', path: '/analytics' },
-  ];
+  useEffect(() => {
+    const onScroll = () => setScrolled(window.scrollY > 8);
+    window.addEventListener('scroll', onScroll, { passive: true });
+    return () => window.removeEventListener('scroll', onScroll);
+  }, []);
+
+  useEffect(() => { setOpen(false); }, [location.pathname]);
 
   return (
-    <div className="flex h-screen bg-gradient-to-br from-zinc-900 to-black">
-      {/* Sidebar */}
-      <motion.aside
-        initial={false}
-        animate={{ x: mobileMenuOpen ? 0 : -320 }}
-        className="fixed lg:static w-80 h-screen bg-zinc-900 border-r border-zinc-800 flex flex-col p-6 z-40"
-      >
-        {/* Logo */}
-        <motion.div
-          initial={{ opacity: 0, y: -10 }}
-          animate={{ opacity: 1, y: 0 }}
-          className="mb-8"
-        >
-          <div className="flex items-center gap-3 mb-8">
-            <div className="w-10 h-10 rounded-lg bg-gradient-to-br from-indigo-500 to-purple-600 flex items-center justify-center">
-              <Zap className="text-white" size={24} />
-            </div>
-            <h1 className="text-2xl font-bold text-white">RestauHub</h1>
+    <div className="app">
+      <nav className={`navbar ${scrolled ? 'scrolled' : ''}`}>
+        <Link to="/" className="nav-brand" onClick={() => setOpen(false)}>
+          <img src="/logo-mark.svg" alt="" width="28" height="28" style={{ filter: 'drop-shadow(0 0 8px var(--accent-glow))' }} />
+          <div className="brand-text">
+            <span className="brand-name">RestauHub</span>
+            <span className="brand-sub">Restaurant OS</span>
           </div>
-          <p className="text-xs text-zinc-500">Restaurant Management System</p>
-        </motion.div>
+        </Link>
 
-        {/* Navigation */}
-        <nav className="flex-1 space-y-2">
-          {navItems.map((item, idx) => (
-            <motion.div key={item.path} initial={{ opacity: 0, x: -10 }} animate={{ opacity: 1, x: 0 }} transition={{ delay: idx * 0.05 }}>
+        <div className={`nav-links ${open ? 'open' : ''}`}>
+          {NAV.map(item => {
+            const active = location.pathname === item.path;
+            return (
               <Link
+                key={item.path}
                 to={item.path}
-                className="flex items-center gap-3 px-4 py-3 rounded-lg text-zinc-400 hover:text-white hover:bg-zinc-800 transition-all group"
-                onClick={() => setMobileMenuOpen(false)}
+                className={`nav-link ${active ? 'active' : ''}`}
+                onClick={() => setOpen(false)}
               >
-                <item.icon size={20} className="group-hover:text-indigo-400 transition-colors" />
-                <span className="font-medium">{item.label}</span>
+                <span className="nav-icon">{item.icon}</span>
+                <span className="nav-label">{item.label}</span>
+                {active && <span className="nav-dot" />}
               </Link>
-            </motion.div>
-          ))}
-        </nav>
+            );
+          })}
+        </div>
 
-        {/* Footer */}
-        <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} className="border-t border-zinc-800 pt-4">
-          <div className="flex items-center gap-3 px-4 py-2">
-            <div className="w-10 h-10 rounded-full bg-gradient-to-br from-indigo-500 to-purple-600 flex items-center justify-center text-white font-bold">
-              A
-            </div>
-            <div className="flex-1 min-w-0">
-              <p className="text-sm font-semibold text-white truncate">Admin User</p>
-              <p className="text-xs text-zinc-500 truncate">admin@example.com</p>
-            </div>
+        <div className="nav-actions">
+          <div className="status-pill">
+            <span className="status-dot" />
+            LIVE
           </div>
-        </motion.div>
-      </motion.aside>
+          <button
+            type="button"
+            aria-label="Toggle navigation"
+            className="nav-burger"
+            onClick={() => setOpen(v => !v)}
+          >
+            <span /><span /><span />
+          </button>
+        </div>
+      </nav>
 
-      {/* Main Content */}
-      <div className="flex-1 flex flex-col overflow-hidden">
-        {/* Header */}
-        <header className="bg-zinc-900 border-b border-zinc-800 px-6 py-4 flex items-center justify-between sticky top-0 z-30">
-          <h2 className="text-2xl font-bold text-white">Welcome to RestauHub</h2>
+      <main style={{ flex: 1, display: 'flex', flexDirection: 'column' }}>
+        {children}
+      </main>
 
-          <div className="flex items-center gap-4">
-            <button className="hidden lg:flex items-center gap-2 px-4 py-2 bg-indigo-600 hover:bg-indigo-700 text-white rounded-lg font-medium transition-colors">
-              <Zap size={18} /> Get Started
-            </button>
-
-            {/* Mobile Menu Toggle */}
-            <motion.button
-              whileTap={{ scale: 0.95 }}
-              onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
-              className="lg:hidden p-2 hover:bg-zinc-800 rounded-lg text-zinc-400"
-            >
-              {mobileMenuOpen ? <X size={24} /> : <Menu size={24} />}
-            </motion.button>
-          </div>
-        </header>
-
-        {/* Content */}
-        <main className="flex-1 overflow-auto">
-          {children}
-        </main>
-      </div>
-
-      {/* Mobile Menu Overlay */}
-      {mobileMenuOpen && (
-        <motion.div
-          initial={{ opacity: 0 }}
-          animate={{ opacity: 1 }}
-          onClick={() => setMobileMenuOpen(false)}
-          className="fixed inset-0 bg-black/50 lg:hidden z-30"
-        />
-      )}
+      <footer style={{
+        borderTop: '1px solid var(--border)',
+        padding: '20px 28px',
+        color: 'var(--text-mid)',
+        fontSize: 12,
+        display: 'flex',
+        justifyContent: 'space-between',
+        flexWrap: 'wrap',
+        gap: 12,
+      }}>
+        <span>© {new Date().getFullYear()} RestauHub · Restaurant OS</span>
+        <span style={{ fontFamily: 'var(--font-mono)', letterSpacing: '0.08em' }}>
+          BUILT WITH REACT · VITE · NODE
+        </span>
+      </footer>
     </div>
   );
 }

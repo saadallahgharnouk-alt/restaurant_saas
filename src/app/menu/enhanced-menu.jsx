@@ -1,164 +1,129 @@
-import React from 'react';
-import { motion } from 'framer-motion';
-import { Search, Filter } from 'lucide-react';
+import React, { useMemo, useState } from 'react';
+import { Link } from 'react-router-dom';
 import MenuCard from '../../components/MenuCard';
 
-const menuData = [
-  {
-    id: 1,
-    name: 'Classic Burger',
-    category: 'Burgers',
-    price: 12.99,
-    discount: 10,
-    image: 'https://via.placeholder.com/200?text=Burger',
-    description: 'Juicy beef patty with fresh toppings',
-  },
-  {
-    id: 2,
-    name: 'Pepperoni Pizza',
-    category: 'Pizza',
-    price: 14.99,
-    discount: 0,
-    image: 'https://via.placeholder.com/200?text=Pizza',
-    description: 'Fresh mozzarella and classic pepperoni',
-  },
-  {
-    id: 3,
-    name: 'Caesar Salad',
-    category: 'Salads',
-    price: 9.99,
-    discount: 15,
-    image: 'https://via.placeholder.com/200?text=Salad',
-    description: 'Crisp romaine with parmesan cheese',
-  },
-  {
-    id: 4,
-    name: 'Grilled Salmon',
-    category: 'Seafood',
-    price: 18.99,
-    discount: 0,
-    image: 'https://via.placeholder.com/200?text=Salmon',
-    description: 'Fresh Atlantic salmon fillet',
-  },
-  {
-    id: 5,
-    name: 'Spaghetti Carbonara',
-    category: 'Pasta',
-    price: 13.99,
-    discount: 20,
-    image: 'https://via.placeholder.com/200?text=Pasta',
-    description: 'Traditional Italian pasta with creamy sauce',
-  },
-  {
-    id: 6,
-    name: 'Chocolate Cake',
-    category: 'Desserts',
-    price: 7.99,
-    discount: 0,
-    image: 'https://via.placeholder.com/200?text=Cake',
-    description: 'Rich and decadent chocolate dessert',
-  },
+const MENU = [
+  { id: 1, name: 'Classic Burger',       category: 'Burgers',  price: 12.99, discount: 10, description: 'Juicy prime beef patty, aged cheddar, crisp lettuce, tomato, onion, brioche bun.', image: 'https://images.unsplash.com/photo-1568901346375-23c9450c58cd?auto=format&fit=crop&w=600&q=70' },
+  { id: 2, name: 'Pepperoni Pizza',      category: 'Pizza',    price: 14.99, discount: 0,  description: 'Fresh mozzarella, classic pepperoni, stone-baked sourdough base.', image: 'https://images.unsplash.com/photo-1604382354936-07c5d9983bd3?auto=format&fit=crop&w=600&q=70' },
+  { id: 3, name: 'Caesar Salad',         category: 'Salads',   price: 9.99,  discount: 15, description: 'Crisp romaine, shaved parmesan, anchovy dressing, sourdough croutons.', image: 'https://images.unsplash.com/photo-1551248429-40975aa4de74?auto=format&fit=crop&w=600&q=70' },
+  { id: 4, name: 'Grilled Salmon',       category: 'Seafood',  price: 18.99, discount: 0,  description: 'Atlantic salmon fillet, lemon butter, seasonal greens.', image: 'https://images.unsplash.com/photo-1467003909585-2f8a72700288?auto=format&fit=crop&w=600&q=70' },
+  { id: 5, name: 'Spaghetti Carbonara',  category: 'Pasta',    price: 13.99, discount: 20, description: 'Traditional Roman carbonara — guanciale, pecorino, fresh egg yolk.', image: 'https://images.unsplash.com/photo-1608897013039-887f21d8c804?auto=format&fit=crop&w=600&q=70' },
+  { id: 6, name: 'Chocolate Fondant',    category: 'Desserts', price: 7.99,  discount: 0,  description: 'Dark chocolate, molten centre, vanilla ice cream.', image: 'https://images.unsplash.com/photo-1511911063855-2bf39afa5b2e?auto=format&fit=crop&w=600&q=70' },
 ];
 
-export default function MenuPage() {
-  const [searchQuery, setSearchQuery] = React.useState('');
-  const [selectedCategory, setSelectedCategory] = React.useState('All');
-  const [cart, setCart] = React.useState([]);
+export default function EnhancedMenuPage() {
+  const [search, setSearch]     = useState('');
+  const [category, setCategory] = useState('All');
+  const [cart, setCart]         = useState([]);
 
-  const categories = ['All', ...new Set(menuData.map(item => item.category))];
+  const categories = useMemo(
+    () => ['All', ...Array.from(new Set(MENU.map(i => i.category)))],
+    []
+  );
 
-  const filteredMenu = menuData.filter(item => {
-    const matchesSearch = item.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
-                         item.description.toLowerCase().includes(searchQuery.toLowerCase());
-    const matchesCategory = selectedCategory === 'All' || item.category === selectedCategory;
-    return matchesSearch && matchesCategory;
-  });
+  const filtered = useMemo(() => {
+    const q = search.trim().toLowerCase();
+    return MENU.filter(i => {
+      const okCat = category === 'All' || i.category === category;
+      const okSearch = !q || i.name.toLowerCase().includes(q) || i.description.toLowerCase().includes(q);
+      return okCat && okSearch;
+    });
+  }, [search, category]);
 
-  const handleAddToCart = (item) => {
-    setCart([...cart, item]);
-    alert(`${item.name} added to cart!`);
-  };
+  const addToCart = item => setCart(c => [...c, item]);
+
+  const cartTotal = cart.reduce(
+    (s, i) => s + i.price * (1 - (i.discount || 0) / 100),
+    0
+  );
 
   return (
-    <div className="min-h-screen bg-gradient-to-b from-zinc-900 to-black p-6">
-      <div className="max-w-7xl mx-auto">
-        {/* Header */}
-        <motion.div initial={{ opacity: 0, y: -20 }} animate={{ opacity: 1, y: 0 }} className="mb-12">
-          <h1 className="text-5xl font-bold text-white mb-3">Our Menu</h1>
-          <p className="text-zinc-400 text-lg">Delicious dishes crafted with care</p>
-        </motion.div>
+    <div className="page">
+      <div className="page-header" style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', gap: 16, flexWrap: 'wrap' }}>
+        <div>
+          <span className="page-tag">◍ Menu</span>
+          <h1 className="page-title">The Menu</h1>
+          <p className="page-sub">{MENU.length} dishes · filter by category or search</p>
+        </div>
+        <Link to="/qr" className="btn btn-ghost">▦ Print QR for this menu</Link>
+      </div>
 
-        {/* Search & Filter */}
-        <div className="grid md:grid-cols-2 gap-4 mb-8">
-          <motion.div
-            whileFocus={{ scale: 1.02 }}
-            className="relative"
-          >
-            <Search className="absolute left-4 top-3 text-zinc-400" size={20} />
+      {/* Filters */}
+      <div className="card" style={{ marginBottom: 24, padding: '16px 20px' }}>
+        <div style={{ display: 'flex', gap: 12, alignItems: 'center', flexWrap: 'wrap' }}>
+          <div style={{ position: 'relative', flex: '1 1 240px', maxWidth: 360 }}>
+            <span style={{
+              position: 'absolute', left: 12, top: '50%', transform: 'translateY(-50%)',
+              color: 'var(--text-mid)', fontSize: 13, pointerEvents: 'none',
+            }}>⌕</span>
             <input
-              type="text"
-              placeholder="Search menu items..."
-              value={searchQuery}
-              onChange={(e) => setSearchQuery(e.target.value)}
-              className="w-full bg-zinc-800 border border-zinc-700 text-white px-4 py-3 pl-12 rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-400"
+              className="input"
+              placeholder="Search dishes…"
+              value={search}
+              onChange={e => setSearch(e.target.value)}
+              style={{ paddingLeft: 32 }}
             />
-          </motion.div>
+          </div>
 
-          <div className="flex items-center gap-2 overflow-x-auto pb-2">
-            <Filter className="text-zinc-400 flex-shrink-0" size={20} />
-            {categories.map((cat) => (
-              <motion.button
-                key={cat}
-                whileHover={{ scale: 1.05 }}
-                whileTap={{ scale: 0.95 }}
-                onClick={() => setSelectedCategory(cat)}
-                className={`px-4 py-2 rounded-full font-medium whitespace-nowrap transition-all ${
-                  selectedCategory === cat
-                    ? 'bg-gradient-to-r from-indigo-500 to-purple-600 text-white'
-                    : 'bg-zinc-800 text-zinc-300 hover:bg-zinc-700'
-                }`}
+          <div style={{ display: 'flex', gap: 6, flexWrap: 'wrap' }}>
+            {categories.map(c => (
+              <button
+                key={c}
+                type="button"
+                onClick={() => setCategory(c)}
+                className={`btn btn-sm ${category === c ? 'btn-primary' : 'btn-ghost'}`}
+                style={{ fontFamily: 'var(--font-mono)', fontSize: 10, letterSpacing: '0.08em' }}
               >
-                {cat}
-              </motion.button>
+                {c.toUpperCase()}
+              </button>
             ))}
           </div>
         </div>
-
-        {/* Menu Grid */}
-        <motion.div
-          initial={{ opacity: 0 }}
-          animate={{ opacity: 1 }}
-          className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6"
-        >
-          {filteredMenu.length > 0 ? (
-            filteredMenu.map((item, idx) => (
-              <motion.div
-                key={item.id}
-                initial={{ opacity: 0, y: 20 }}
-                animate={{ opacity: 1, y: 0 }}
-                transition={{ delay: idx * 0.1 }}
-              >
-                <MenuCard item={item} onAddToCart={handleAddToCart} />
-              </motion.div>
-            ))
-          ) : (
-            <div className="col-span-full text-center py-12">
-              <p className="text-zinc-400 text-lg">No items found. Try a different search or category.</p>
-            </div>
-          )}
-        </motion.div>
-
-        {/* Cart Preview */}
-        {cart.length > 0 && (
-          <motion.div
-            initial={{ opacity: 0, y: 20 }}
-            animate={{ opacity: 1, y: 0 }}
-            className="fixed bottom-6 right-6 bg-indigo-600 text-white px-6 py-3 rounded-full shadow-lg cursor-pointer hover:bg-indigo-700 transition-colors"
-          >
-            Cart ({cart.length} items)
-          </motion.div>
-        )}
       </div>
+
+      {/* Grid */}
+      {filtered.length === 0 ? (
+        <div className="empty-state">
+          <span style={{ fontSize: 28 }}>◈</span>
+          <span>No dishes match your search.</span>
+        </div>
+      ) : (
+        <div className="grid-3 stagger">
+          {filtered.map(item => (
+            <MenuCard key={item.id} item={item} onAddToCart={addToCart} />
+          ))}
+        </div>
+      )}
+
+      {/* Floating cart pill */}
+      {cart.length > 0 && (
+        <div style={{
+          position: 'fixed',
+          bottom: 24, right: 24,
+          zIndex: 80,
+          background: 'var(--accent)',
+          color: '#fff',
+          padding: '12px 20px',
+          borderRadius: 99,
+          boxShadow: '0 16px 40px rgba(99,102,241,0.45)',
+          display: 'flex', alignItems: 'center', gap: 14,
+          animation: 'fadeUp 0.3s var(--ease-spring)',
+        }}>
+          <span style={{ fontFamily: 'var(--font-mono)', fontSize: 11, letterSpacing: '0.08em' }}>
+            {cart.length} ITEM{cart.length === 1 ? '' : 'S'}
+          </span>
+          <span style={{ fontFamily: 'var(--font-display)', fontWeight: 800 }}>
+            ${cartTotal.toFixed(2)}
+          </span>
+          <Link to="/order" style={{
+            background: 'rgba(255,255,255,0.15)',
+            border: '1px solid rgba(255,255,255,0.3)',
+            padding: '6px 12px', borderRadius: 99,
+            color: '#fff', textDecoration: 'none',
+            fontSize: 12, fontWeight: 600,
+          }}>View →</Link>
+        </div>
+      )}
     </div>
   );
 }

@@ -1,196 +1,212 @@
-import React from 'react';
-import { motion } from 'framer-motion';
-import { TrendingUp, Users, ShoppingCart, DollarSign, Activity } from 'lucide-react';
-import { Line, Bar, Doughnut } from 'react-chartjs-2';
-import {
-  Chart as ChartJS,
-  CategoryScale,
-  LinearScale,
-  PointElement,
-  LineElement,
-  BarElement,
-  ArcElement,
-  Title,
-  Tooltip,
-  Legend,
-} from 'chart.js';
+import React, { useEffect, useState } from 'react';
 
-ChartJS.register(
-  CategoryScale,
-  LinearScale,
-  PointElement,
-  LineElement,
-  BarElement,
-  ArcElement,
-  Title,
-  Tooltip,
-  Legend
-);
+const WEEK = [
+  { day: 'Mon', rev: 1200 },
+  { day: 'Tue', rev: 1900 },
+  { day: 'Wed', rev: 1500 },
+  { day: 'Thu', rev: 2200 },
+  { day: 'Fri', rev: 2800 },
+  { day: 'Sat', rev: 3100 },
+  { day: 'Sun', rev: 2500 },
+];
 
-const StatCard = ({ icon: Icon, title, value, change, color }) => (
-  <motion.div
-    whileHover={{ y: -5 }}
-    className={`relative overflow-hidden rounded-xl p-6 text-white`}
-    style={{
-      background: `linear-gradient(135deg, ${color}1a 0%, ${color}0a 100%)`,
-      border: `1px solid ${color}40`,
-    }}
-  >
-    <div className="flex items-center justify-between">
-      <div>
-        <p className="text-zinc-400 text-sm font-medium mb-1">{title}</p>
-        <h3 className="text-3xl font-bold">{value}</h3>
-        {change && (
-          <p className={`text-xs mt-2 ${change > 0 ? 'text-green-400' : 'text-red-400'}`}>
-            {change > 0 ? '↑' : '↓'} {Math.abs(change)}% from last week
-          </p>
-        )}
-      </div>
-      <div className="p-3 rounded-lg" style={{ backgroundColor: `${color}20` }}>
-        <Icon size={24} style={{ color }} />
-      </div>
-    </div>
-  </motion.div>
-);
+const CATEGORIES = [
+  { name: 'Burgers',  orders: 120, color: '#6366f1' },
+  { name: 'Pizza',    orders: 150, color: '#a855f7' },
+  { name: 'Pasta',    orders: 90,  color: '#ec4899' },
+  { name: 'Salads',   orders: 60,  color: '#22c55e' },
+  { name: 'Desserts', orders: 45,  color: '#f59e0b' },
+];
+
+const TOP_ITEMS = [
+  { name: 'Pepperoni Pizza',      orders: 248, revenue: 3720 },
+  { name: 'Classic Burger',       orders: 201, revenue: 2613 },
+  { name: 'Spaghetti Carbonara',  orders: 187, revenue: 2614 },
+  { name: 'Caesar Salad',         orders: 156, revenue: 1559 },
+  { name: 'Chocolate Fondant',    orders: 134, revenue: 1071 },
+];
 
 export default function AnalyticsDashboard() {
-  // Sample data
-  const salesData = {
-    labels: ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'],
-    datasets: [
-      {
-        label: 'Sales ($)',
-        data: [1200, 1900, 1500, 2200, 2800, 3100, 2500],
-        borderColor: '#6366f1',
-        backgroundColor: '#6366f120',
-        tension: 0.4,
-      },
-    ],
-  };
+  const [mounted, setMounted] = useState(false);
+  useEffect(() => {
+    const t = setTimeout(() => setMounted(true), 60);
+    return () => clearTimeout(t);
+  }, []);
 
-  const categoryData = {
-    labels: ['Burgers', 'Pizza', 'Pasta', 'Salads', 'Desserts'],
-    datasets: [
-      {
-        label: 'Orders',
-        data: [120, 150, 90, 60, 45],
-        backgroundColor: ['#6366f1', '#8b5cf6', '#d946ef', '#ec4899', '#f43f5e'],
-      },
-    ],
-  };
-
-  const popularItems = [
-    { name: 'Pepperoni Pizza', orders: 248, revenue: '$3,720' },
-    { name: 'Classic Burger', orders: 201, revenue: '$2,613' },
-    { name: 'Spaghetti Carbonara', orders: 187, revenue: '$2,614' },
-    { name: 'Caesar Salad', orders: 156, revenue: '$1,559' },
-  ];
+  const maxRev      = Math.max(...WEEK.map(d => d.rev));
+  const totalOrders = CATEGORIES.reduce((n, c) => n + c.orders, 0);
+  const maxItemRev  = Math.max(...TOP_ITEMS.map(i => i.revenue));
 
   return (
-    <div className="min-h-screen bg-gradient-to-b from-zinc-900 to-black p-6">
-      <div className="max-w-7xl mx-auto">
-        {/* Header */}
-        <motion.div initial={{ opacity: 0, y: -20 }} animate={{ opacity: 1, y: 0 }} className="mb-12">
-          <h1 className="text-5xl font-bold text-white mb-3">Analytics Dashboard</h1>
-          <p className="text-zinc-400">Real-time insights into your restaurant performance</p>
-        </motion.div>
-
-        {/* Stats Grid */}
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 mb-8">
-          <StatCard
-            icon={DollarSign}
-            title="Total Revenue"
-            value="$12,450"
-            change={12}
-            color="#10b981"
-          />
-          <StatCard
-            icon={ShoppingCart}
-            title="Total Orders"
-            value="1,247"
-            change={8}
-            color="#6366f1"
-          />
-          <StatCard
-            icon={Users}
-            title="New Customers"
-            value="342"
-            change={15}
-            color="#f59e0b"
-          />
-          <StatCard
-            icon={Activity}
-            title="Avg. Order Value"
-            value="$9.98"
-            change={-3}
-            color="#ec4899"
-          />
+    <div className="page">
+      <div className="page-header" style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', gap: 16, flexWrap: 'wrap' }}>
+        <div>
+          <span className="page-tag">◎ Analytics</span>
+          <h1 className="page-title">Dashboard</h1>
+          <p className="page-sub">Revenue, top items and category mix — last 7 days</p>
         </div>
+        <div style={{ display: 'flex', gap: 10 }}>
+          <button className="btn btn-ghost">📄 Export CSV</button>
+          <button className="btn btn-primary">📊 Download PDF</button>
+        </div>
+      </div>
 
-        {/* Charts */}
-        <div className="grid lg:grid-cols-3 gap-8 mb-8">
-          {/* Sales Trend */}
-          <motion.div
-            initial={{ opacity: 0, y: 20 }}
-            animate={{ opacity: 1, y: 0 }}
-            className="lg:col-span-2 bg-zinc-800/50 backdrop-blur rounded-2xl p-6"
-          >
-            <h2 className="text-xl font-bold text-white mb-4">Weekly Sales Trend</h2>
-            <Line data={salesData} options={{ responsive: true, plugins: { legend: { labels: { color: '#a1a1aa' } } } }} />
-          </motion.div>
+      {/* ── KPI cards ─────────────────────────────── */}
+      <div className="grid-4 stagger" style={{ marginBottom: 24 }}>
+        <KPI label="Total Revenue"     value="$12,450" change="+12%"  up />
+        <KPI label="Total Orders"      value="1,247"   change="+8%"   up />
+        <KPI label="New Customers"     value="342"     change="+15%"  up />
+        <KPI label="Avg. Order Value"  value="$9.98"   change="-3%"   down />
+      </div>
 
-          {/* Popular Items */}
-          <motion.div
-            initial={{ opacity: 0, y: 20 }}
-            animate={{ opacity: 1, y: 0 }}
-            className="bg-zinc-800/50 backdrop-blur rounded-2xl p-6"
-          >
-            <h2 className="text-xl font-bold text-white mb-4">Top Items</h2>
-            <div className="space-y-3">
-              {popularItems.map((item, idx) => (
-                <motion.div
-                  key={idx}
-                  initial={{ opacity: 0, x: -20 }}
-                  animate={{ opacity: 1, x: 0 }}
-                  transition={{ delay: idx * 0.1 }}
-                  className="bg-zinc-700/50 p-3 rounded-lg"
-                >
-                  <div className="flex justify-between items-start mb-2">
-                    <h3 className="font-semibold text-white text-sm">{item.name}</h3>
-                    <span className="text-emerald-400 font-bold text-sm">{item.revenue}</span>
-                  </div>
-                  <div className="w-full bg-zinc-600 rounded-full h-2">
-                    <div
-                      className="bg-gradient-to-r from-indigo-500 to-purple-600 h-2 rounded-full"
-                      style={{ width: `${(item.orders / 250) * 100}%` }}
-                    />
-                  </div>
-                  <p className="text-xs text-zinc-400 mt-2">{item.orders} orders</p>
-                </motion.div>
-              ))}
+      <div className="grid-2" style={{ gridTemplateColumns: 'minmax(0,2fr) minmax(0,1fr)', gap: 16, marginBottom: 16 }}>
+        {/* ── Weekly revenue chart ──────────────────── */}
+        <div className="card" style={{ animation: 'fadeUp 0.5s 0.15s var(--ease-out) both', padding: 24 }}>
+          <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 20 }}>
+            <div>
+              <p style={{ fontFamily: 'var(--font-mono)', fontSize: 10, color: 'var(--text-mid)', letterSpacing: '0.12em', textTransform: 'uppercase' }}>
+                Weekly Revenue
+              </p>
+              <p style={{ fontFamily: 'var(--font-display)', fontSize: 22, fontWeight: 800, color: 'var(--text-hi)', marginTop: 2 }}>
+                ${WEEK.reduce((s, d) => s + d.rev, 0).toLocaleString()}
+              </p>
             </div>
-          </motion.div>
+            <span className="badge badge-accent">7d</span>
+          </div>
+
+          <div style={{ display: 'flex', alignItems: 'flex-end', gap: 10, height: 200, paddingBottom: 6 }}>
+            {WEEK.map((d, i) => {
+              const h = (d.rev / maxRev) * 100;
+              const peak = d.rev === maxRev;
+              return (
+                <div key={d.day} style={{
+                  flex: 1, display: 'flex', flexDirection: 'column',
+                  alignItems: 'center', gap: 6, height: '100%', justifyContent: 'flex-end',
+                }}>
+                  <span style={{
+                    fontFamily: 'var(--font-mono)', fontSize: 9, color: 'var(--text-mid)',
+                    opacity: peak ? 1 : 0.6,
+                  }}>
+                    ${(d.rev / 1000).toFixed(1)}k
+                  </span>
+                  <div
+                    title={`$${d.rev}`}
+                    style={{
+                      width: '100%',
+                      borderRadius: '8px 8px 0 0',
+                      background: peak
+                        ? 'linear-gradient(180deg, #818cf8 0%, #4338ca 100%)'
+                        : 'linear-gradient(180deg, rgba(99,102,241,0.55) 0%, rgba(99,102,241,0.25) 100%)',
+                      height: mounted ? `${h}%` : '0%',
+                      transition: `height 0.9s ${i * 0.06}s var(--ease-out)`,
+                      boxShadow: peak ? '0 -6px 24px rgba(99,102,241,0.4)' : 'none',
+                    }}
+                  />
+                  <span style={{ fontFamily: 'var(--font-mono)', fontSize: 10, color: 'var(--text-mid)' }}>
+                    {d.day}
+                  </span>
+                </div>
+              );
+            })}
+          </div>
         </div>
 
-        {/* Category Performance */}
-        <motion.div
-          initial={{ opacity: 0, y: 20 }}
-          animate={{ opacity: 1, y: 0 }}
-          className="bg-zinc-800/50 backdrop-blur rounded-2xl p-6"
-        >
-          <h2 className="text-xl font-bold text-white mb-4">Orders by Category</h2>
-          <div className="h-80">
-            <Bar
-              data={categoryData}
-              options={{
-                responsive: true,
-                maintainAspectRatio: false,
-                plugins: { legend: { labels: { color: '#a1a1aa' } } },
+        {/* ── Top items ─────────────────────────────── */}
+        <div className="card" style={{ animation: 'fadeUp 0.5s 0.25s var(--ease-out) both', padding: 24 }}>
+          <p style={{ fontFamily: 'var(--font-mono)', fontSize: 10, color: 'var(--text-mid)', letterSpacing: '0.12em', textTransform: 'uppercase', marginBottom: 16 }}>
+            Top Items
+          </p>
+
+          <div style={{ display: 'flex', flexDirection: 'column', gap: 14 }}>
+            {TOP_ITEMS.map((item, i) => (
+              <div key={item.name}>
+                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'baseline', marginBottom: 6 }}>
+                  <span style={{ fontSize: 13, color: 'var(--text-hi)', fontWeight: 600 }}>
+                    <span style={{ color: 'var(--text-mid)', fontFamily: 'var(--font-mono)', marginRight: 6 }}>
+                      {String(i + 1).padStart(2, '0')}
+                    </span>
+                    {item.name}
+                  </span>
+                  <span style={{ fontFamily: 'var(--font-mono)', fontSize: 11, color: 'var(--green)', fontWeight: 600 }}>
+                    ${item.revenue.toLocaleString()}
+                  </span>
+                </div>
+                <div style={{ height: 4, background: 'var(--surface2)', borderRadius: 99, overflow: 'hidden' }}>
+                  <div style={{
+                    height: '100%',
+                    width: mounted ? `${(item.revenue / maxItemRev) * 100}%` : '0%',
+                    background: 'linear-gradient(90deg, #818cf8, #4338ca)',
+                    borderRadius: 99,
+                    transition: `width 0.9s ${i * 0.07}s var(--ease-out)`,
+                  }} />
+                </div>
+                <p style={{ fontSize: 10, color: 'var(--text-mid)', marginTop: 4 }}>{item.orders} orders</p>
+              </div>
+            ))}
+          </div>
+        </div>
+      </div>
+
+      {/* ── Category mix ─────────────────────────── */}
+      <div className="card" style={{ animation: 'fadeUp 0.5s 0.35s var(--ease-out) both', padding: 24 }}>
+        <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 20 }}>
+          <p style={{ fontFamily: 'var(--font-mono)', fontSize: 10, color: 'var(--text-mid)', letterSpacing: '0.12em', textTransform: 'uppercase' }}>
+            Category Mix
+          </p>
+          <span style={{ fontFamily: 'var(--font-mono)', fontSize: 11, color: 'var(--text-mid)' }}>
+            {totalOrders} orders
+          </span>
+        </div>
+
+        {/* Segmented bar */}
+        <div style={{
+          display: 'flex', gap: 2, height: 14, borderRadius: 99, overflow: 'hidden',
+          background: 'var(--surface2)', marginBottom: 20,
+        }}>
+          {CATEGORIES.map((c, i) => (
+            <div
+              key={c.name}
+              title={`${c.name}: ${c.orders}`}
+              style={{
+                flexGrow: mounted ? c.orders : 0,
+                background: c.color,
+                transition: `flex-grow 1s ${i * 0.08}s var(--ease-out)`,
               }}
             />
-          </div>
-        </motion.div>
+          ))}
+        </div>
+
+        <div className="grid-4" style={{ gap: 12 }}>
+          {CATEGORIES.map(c => (
+            <div key={c.name} className="card" style={{
+              padding: '14px 16px', background: 'var(--surface2)',
+            }}>
+              <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 6 }}>
+                <span style={{ width: 8, height: 8, borderRadius: 3, background: c.color, display: 'block' }} />
+                <span style={{ fontSize: 12, color: 'var(--text)', fontWeight: 500 }}>{c.name}</span>
+              </div>
+              <p style={{ fontFamily: 'var(--font-display)', fontSize: 20, fontWeight: 800, color: 'var(--text-hi)' }}>
+                {c.orders}
+              </p>
+              <p style={{ fontFamily: 'var(--font-mono)', fontSize: 10, color: 'var(--text-mid)', marginTop: 2 }}>
+                {((c.orders / totalOrders) * 100).toFixed(0)}% of orders
+              </p>
+            </div>
+          ))}
+        </div>
       </div>
+    </div>
+  );
+}
+
+function KPI({ label, value, change, up, down }) {
+  return (
+    <div className="stat-card">
+      <p className="stat-label">{label}</p>
+      <p className="stat-value">{value}</p>
+      <p className={`stat-change ${up ? 'up' : down ? 'down' : ''}`}>
+        {up ? '↑ ' : down ? '↓ ' : ''}{change}
+      </p>
     </div>
   );
 }

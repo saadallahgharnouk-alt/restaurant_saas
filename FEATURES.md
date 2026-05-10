@@ -1,225 +1,104 @@
-# RestauHub 🍽️ - Enhanced Restaurant SaaS
+# RestauHub — Features
 
-## 🎉 What's New
-
-Your restaurant app has been **completely redesigned and enhanced** with professional features inspired by industry-leading POS and menu systems. Here's everything that was added:
-
----
-
-## ✨ **New Features**
-
-### 1. **🔲 Digital QR Code Menus**
-- **Location**: Menu QR Component (`/components/MenuQR.jsx`)
-- Generate customizable QR codes for each restaurant
-- Customers scan to access the digital menu
-- Download QR codes as PNG files
-- Share menu links directly
-
-### 2. **📱 Enhanced Order Management**
-- **Location**: Order Cart (`/components/OrderCart.jsx`)
-- Professional cart interface with item quantities
-- Real-time price calculations with tax (10%)
-- **Discount/Promo System**:
-  - Apply promo codes (try: `SAVE10`, `SAVE20`, `WELCOME`)
-  - Display real-time discounts
-  - Percentage-based calculations
-- Smooth animations with Framer Motion
-- Remove items or adjust quantities easily
-
-### 3. **🎨 Beautiful Menu Display**
-- **Location**: Enhanced Menu Page (`/app/menu/enhanced-menu.jsx`)
-- Category filtering (Burgers, Pizza, Pasta, Salads, Seafood, Desserts)
-- Search functionality across all items
-- Menu cards with:
-  - Product images
-  - Descriptions and prices
-  - Discount badges (visual % off)
-  - Favorite/wishlist button
-  - Quick "Add to Order" action
-
-### 4. **📊 Real-time Analytics Dashboard**
-- **Location**: Analytics Dashboard (`/components/AnalyticsDashboard.jsx`)
-- 4 key metric cards:
-  - Total Revenue ($)
-  - Total Orders
-  - New Customers
-  - Average Order Value
-- **Charts**:
-  - Weekly sales trend (Line Chart)
-  - Orders by category (Bar Chart)
-  - Top selling items with rankings
-- Performance indicators (trending ↑↓)
-
-### 5. **🎯 Professional Navigation**
-- **Location**: Enhanced Layout (`/components/EnhancedLayout.jsx`)
-- Modern sidebar with restaurant branding
-- Mobile-responsive hamburger menu
-- Quick navigation to all features:
-  - Dashboard
-  - Menu Management
-  - Orders
-  - QR Codes
-  - Analytics
-- User profile section
-
-### 6. **🏠 Stunning Home Dashboard**
-- **Location**: Enhanced Dashboard (`/app/enhanced-dashboard.jsx`)
-- Hero section with CTAs
-- Live statistics (users, orders, revenue, uptime)
-- Feature showcases with icons
-- QR generator demo
-- Call-to-action section
+This file explains, in plain terms, what each screen does and what changed
+in the v2 rework.
 
 ---
 
-## 🛠️ **Tech Stack Added**
+## 🆕 v2 — Design rework + QR menus
 
-| Package | Version | Purpose |
-|---------|---------|---------|
-| `framer-motion` | ^11.0.0 | Smooth animations & transitions |
-| `lucide-react` | ^0.344.0 | Beautiful icons |
-| `qr-code-styling` | ^1.6.0-rc | Advanced QR code generation |
-| `chart.js` | ^4.4.1 | Analytics charts |
-| `react-chartjs-2` | ^5.2.0 | React wrapper for charts |
+### Brand
+- Custom SVG logo set (mark, full logo, favicon, OG card) with an indigo
+  gradient, hexagonal frame and a steaming-bowl silhouette.
+- Unified CSS design tokens — the old mix of Tailwind-style classes (which
+  didn't actually resolve) and hand-rolled CSS has been collapsed into one
+  consistent system in `src/App.css`.
+
+### QR Studio (`/qr`)
+- **Restaurant picker** that falls back to mock data when the backend is off.
+- **Three modes**:
+  - *Single* — one universal code per restaurant.
+  - *Per-table* — enter a table number; the URL gets `?t=N`.
+  - *Bulk* — pick a table count and get 1…N printable cards in a grid with
+    a `🖨 Print all` button (a dedicated `@media print` stylesheet hides the
+    chrome so only the cards print).
+- **Live preview** of the print-ready card: restaurant name, table chip,
+  the QR with the RestauHub mark embedded, plus a dashed footer.
+- **Actions**: copy URL, download PNG, preview in a new tab.
+
+### Public scan menu (`/m/:restaurantId`)
+The screen your guests actually see after scanning.
+
+- Pure mobile-first — no sidebar, no admin chrome.
+- Hero header with gradient title, table chip when `?t=N` is present.
+- Sticky category bar with pill filters.
+- Food cards with thumbnail, description, price, inline `+` / `−` qty.
+- Floating bottom pill summarising the cart; tap to open a slide-up drawer.
+- Drawer has full cart controls (qty, remove), subtotal + tax + total, and a
+  `Send to kitchen` button that `POST`s `/api/orders` with a `table_number`.
+- If the backend is offline it still looks/feels right — it falls back to a
+  10-item demo menu and shows a success toast locally.
+
+### Table-aware orders
+The `table_number` field is now passed all the way through: QR URL
+(`?t=5`) → scan page → `POST /api/orders` → row in the `Orders` table.
 
 ---
 
-## 📂 **New Files Created**
+## Admin screens (all restyled)
+
+### `/` — Welcome dashboard
+Hero with "Run your restaurant like a SaaS", 4 KPI stat cards, 4 linked
+feature tiles (QR / Orders / Analytics / Kitchen), and a CTA card that
+deep-links into QR Studio.
+
+### `/restaurants` — Partner directory
+(Kept from before — was already in the tokenised system.) Searchable grid
+of partner venues with a detail modal.
+
+### `/menu` — Public-style menu preview
+Search, category pills, responsive cards with real food photos. Has a
+floating cart pill that takes you to `/order`.
+
+### `/menu/manage` — Admin menu management
+(Kept.) Add / 86 / edit items with category chips + modal.
+
+### `/kitchen` — Kitchen display
+(Kept.) Three columns (Pending / Cooking / Ready) with per-card live timers.
+
+### `/order` — Order cart (admin preview)
+Rewritten to use the design tokens: seeded items, qty steppers, promo codes
+(`SAVE10`, `SAVE20`, `WELCOME`), subtotal / tax / discount / total,
+confirmation banner on checkout.
+
+### `/analytics` — Analytics
+Rewritten without `chart.js` — now uses custom CSS bars + gradient
+progress bars for top items and a segmented category mix bar.
+
+---
+
+## 📦 What was deleted / simplified
+
+- Old mixed-Tailwind pages that relied on `bg-zinc-900`, `backdrop-blur`
+  etc. but had no Tailwind install — replaced with token-based equivalents.
+- `MenuQR` was rewritten; it no longer just outputs a bare image — it's a
+  proper printable card, driven by `{ restaurant, table }` props, with copy
+  URL / download / preview actions.
+
+---
+
+## 🧩 Sample flow
 
 ```
-src/
-├── components/
-│   ├── MenuCard.jsx           (Product card with discounts)
-│   ├── MenuQR.jsx             (QR code generator)
-│   ├── OrderCart.jsx          (Enhanced shopping cart)
-│   ├── AnalyticsDashboard.jsx (Analytics with charts)
-│   └── EnhancedLayout.jsx     (Better navigation)
-├── app/
-│   ├── enhanced-dashboard.jsx (Home page dashboard)
-│   └── menu/
-│       └── enhanced-menu.jsx  (Menu with categories)
+Admin /qr  →  pick “La Bella Italia”  →  Per-table → 5
+  → Download PNG → print → stick on table 5
+
+Guest scans with phone → lands on /m/1?t=5
+  → picks Margherita + Tiramisu → Send to kitchen
+  → POST /api/orders { restaurant_id: 1, table_number: 5, … }
+
+Staff opens /kitchen  →  new ticket appears in Pending column
 ```
 
----
-
-## 🚀 **How to Use**
-
-### Start the App
-```bash
-# Terminal 1 - Backend (Port 5000)
-cd backend
-node server.js
-
-# Terminal 2 - Frontend (Port 5173)
-npm run dev
-```
-
-### Navigate Features
-1. **Dashboard** (`/`) - Home with QR generator demo
-2. **Menu** (`/menu`) - Browse items, filter by category, search
-3. **Orders** (`/order`) - Add items to cart, apply promo codes, checkout
-4. **Analytics** (`/analytics`) - View sales trends, popular items
-5. **Open QR Code** - Generate and download menu QR codes
-
-### Try Promo Codes
-- `SAVE10` = 10% off
-- `SAVE20` = 20% off
-- `WELCOME` = 15% off
-
----
-
-## 🎨 **Design Highlights**
-
-### Color Scheme
-- **Primary**: Indigo (`#6366f1`) - CTAs, highlights
-- **Secondary**: Purple (`#a855f7`) - Gradients, accents
-- **Success**: Green (`#10b981`) - Checkouts, savings
-- **Warning**: Amber (`#f59e0b`) - Alerts
-- **Danger**: Red (`#ef4444`) - Discounts
-
-### Components
-- Gradient backgrounds for depth
-- Smooth hover animations (`whileHover`, `whileTap`)
-- Glass-morphism effects (backdrop blur)
-- Responsive grid layouts
-- Rounded corners (12-24px radius)
-- Dark theme with zinc/slate neutrals
-
----
-
-## 📈 **Features from Reference Repos**
-
-Your app now includes features inspired by:
-
-✅ **MenuQR** - QR code menus, analytics dashboard  
-✅ **QR Menu Restaurant** - Discount mechanism, scroll animations  
-✅ **POS System** - Order management, category filters, discount handling  
-✅ **Restaurant POS 2.0** - Multi-device responsive, order management  
-
----
-
-## 🔧 **Customization Ideas**
-
-### Next Steps
-1. **Connect Database** - Link Supabase PostgreSQL for live data
-2. **Payment Integration** - Add Stripe/PayPal checkout
-3. **Staff Management** - Admin panel for kitchen orders
-4. **Customer Accounts** - User profiles and order history
-5. **Multi-language** - i18n support for international restaurants
-
-### Styling Tweaks
-- Modify color palette in `App.css` (design tokens at top)
-- Update restaurant name in `EnhancedLayout.jsx`
-- Add real menu items in `enhanced-menu.jsx`
-- Customize analytics metrics in `AnalyticsDashboard.jsx`
-
----
-
-## 📊 **Sample Data**
-
-All components use demo data:
-- **Menu Items**: 6 sample dishes with prices & discounts
-- **Orders**: Dynamic cart management
-- **Analytics**: Mock data for 7-day trend
-- **Restaurants**: Demo restaurant with ID 1
-
----
-
-## ✅ **What Works**
-
-- ✅ Fast, smooth UI with animations
-- ✅ Responsive design (mobile, tablet, desktop)
-- ✅ QR code generation & download
-- ✅ Discount/promo code system
-- ✅ Menu filtering & search
-- ✅ Order management with tax calculation
-- ✅ Analytics dashboard with charts
-- ✅ Professional navigation
-
----
-
-## 🔗 **Live URLs**
-
-- **Frontend**: http://localhost:5173/
-- **Backend API**: http://localhost:5000/
-- **Dashboard**: http://localhost:5173/
-- **Menu**: http://localhost:5173/menu
-- **Orders**: http://localhost:5173/order
-- **Analytics**: http://localhost:5173/analytics
-
----
-
-## 🎯 **Next Actions**
-
-1. ✅ Open http://localhost:5173/ in your browser
-2. ✅ Click through the menu and add items
-3. ✅ Go to Orders page to test promo codes
-4. ✅ Check Analytics for demo dashboard
-5. ✅ Try generating QR codes
-
----
-
-**Built with React 19, Vite, Node.js, Express & PostgreSQL**  
-**Inspired by MenuQR, QR Menu Restaurant, and POS Systems**
-
-Good luck! 🚀
+That's the entire QR loop, from the paper on the table to the printer in
+the kitchen.

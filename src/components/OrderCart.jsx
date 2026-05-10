@@ -1,186 +1,312 @@
-import React from 'react';
-import { motion, AnimatePresence } from 'framer-motion';
-import { Trash2, Minus, Plus, ShoppingCart } from 'lucide-react';
+import React, { useMemo, useState } from 'react';
+import { Link } from 'react-router-dom';
+
+const SEED = [
+  { id: 1, name: 'Classic Burger',      price: 12.99, qty: 2, image: 'https://images.unsplash.com/photo-1568901346375-23c9450c58cd?auto=format&fit=crop&w=200&q=60' },
+  { id: 5, name: 'Spaghetti Carbonara', price: 13.99, qty: 1, image: 'https://images.unsplash.com/photo-1608897013039-887f21d8c804?auto=format&fit=crop&w=200&q=60' },
+  { id: 6, name: 'Chocolate Fondant',   price: 7.99,  qty: 1, image: 'https://images.unsplash.com/photo-1511911063855-2bf39afa5b2e?auto=format&fit=crop&w=200&q=60' },
+];
+
+const PROMOS = {
+  SAVE10:  10,
+  SAVE20:  20,
+  WELCOME: 15,
+};
 
 export default function OrderCart() {
-  const [cart, setCart] = React.useState([]);
-  const [promoCode, setPromoCode] = React.useState('');
-  const [promoDiscount, setPromoDiscount] = React.useState(0);
+  const [cart, setCart]             = useState(SEED);
+  const [promoInput, setPromoInput] = useState('');
+  const [promoPct, setPromoPct]     = useState(0);
+  const [promoError, setPromoError] = useState('');
+  const [placed, setPlaced]         = useState(null);
 
-  const subtotal = cart.reduce((sum, item) => sum + item.price * item.quantity, 0);
-  const tax = subtotal * 0.1; // 10% tax
-  const discount = subtotal * (promoDiscount / 100);
-  const total = subtotal + tax - discount;
+  const { subtotal, tax, discount, total } = useMemo(() => {
+    const subtotal = cart.reduce((s, i) => s + i.price * i.qty, 0);
+    const tax = subtotal * 0.1;
+    const discount = subtotal * (promoPct / 100);
+    const total = Math.max(0, subtotal + tax - discount);
+    return { subtotal, tax, discount, total };
+  }, [cart, promoPct]);
 
-  const updateQuantity = (id, newQty) => {
-    if (newQty <= 0) {
-      setCart(cart.filter(item => item.id !== id));
-    } else {
-      setCart(cart.map(item => (item.id === id ? { ...item, quantity: newQty } : item)));
-    }
-  };
+  const updateQty = (id, delta) =>
+    setCart(prev =>
+      prev
+        .map(i => (i.id === id ? { ...i, qty: i.qty + delta } : i))
+        .filter(i => i.qty > 0)
+    );
+
+  const removeItem = id => setCart(prev => prev.filter(i => i.id !== id));
 
   const applyPromo = () => {
-    // Dummy promo codes
-    const promoCodes = {
-      'SAVE10': 10,
-      'SAVE20': 20,
-      'WELCOME': 15,
-    };
-    const discount = promoCodes[promoCode.toUpperCase()] || 0;
-    if (discount > 0) {
-      setPromoDiscount(discount);
+    const code = promoInput.trim().toUpperCase();
+    if (!code) { setPromoError('Enter a promo code first.'); return; }
+    if (PROMOS[code]) {
+      setPromoPct(PROMOS[code]);
+      setPromoError('');
+    } else {
+      setPromoPct(0);
+      setPromoError(`"${code}" is not a valid promo code.`);
     }
   };
 
-  const handleCheckout = () => {
-    if (cart.length === 0) {
-      alert('Your cart is empty!');
-      return;
-    }
-    console.log('Order placed:', { cart, total, promoCode });
-    alert(`Order placed! Total: $${total.toFixed(2)}`);
+  const clearPromo = () => { setPromoPct(0); setPromoInput(''); setPromoError(''); };
+
+  const placeOrder = () => {
+    if (cart.length === 0) return;
+    setPlaced({ id: Math.floor(Math.random() * 9000) + 1000, total });
     setCart([]);
+    clearPromo();
   };
 
   return (
-    <div className="min-h-screen bg-gradient-to-b from-zinc-900 to-black p-6">
-      <div className="max-w-6xl mx-auto">
-        <h1 className="text-4xl font-bold text-white mb-8 flex items-center gap-3">
-          <ShoppingCart className="text-indigo-400" size={36} />
-          Your Order
-        </h1>
+    <div className="page">
+      <div className="page-header" style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', gap: 16, flexWrap: 'wrap' }}>
+        <div>
+          <span className="page-tag">⬢ Orders</span>
+          <h1 className="page-title">Your Order</h1>
+          <p className="page-sub">Review items, apply a promo code, then send to the kitchen.</p>
+        </div>
+        <Link to="/menu" className="btn btn-ghost">← Back to menu</Link>
+      </div>
 
-        <div className="grid lg:grid-cols-3 gap-8">
-          {/* Cart Items */}
-          <div className="lg:col-span-2">
-            <div className="bg-zinc-800/50 backdrop-blur rounded-2xl p-6">
-              <h2 className="text-xl font-bold text-white mb-4">Items ({cart.length})</h2>
-
-              <AnimatePresence>
-                {cart.length === 0 ? (
-                  <motion.div className="text-center py-12">
-                    <ShoppingCart size={48} className="mx-auto text-zinc-600 mb-4" />
-                    <p className="text-zinc-400">Your cart is empty. Add items to get started!</p>
-                  </motion.div>
-                ) : (
-                  <div className="space-y-3">
-                    {cart.map((item, idx) => (
-                      <motion.div
-                        key={item.id}
-                        initial={{ opacity: 0, x: -20 }}
-                        animate={{ opacity: 1, x: 0 }}
-                        exit={{ opacity: 0, x: 20 }}
-                        className="flex items-center gap-4 bg-zinc-700/50 p-4 rounded-xl"
-                      >
-                        <img
-                          src={item.image || 'https://via.placeholder.com/80'}
-                          alt={item.name}
-                          className="w-20 h-20 rounded-lg object-cover"
-                        />
-
-                        <div className="flex-1">
-                          <h3 className="font-semibold text-white">{item.name}</h3>
-                          <p className="text-sm text-zinc-400">${item.price.toFixed(2)} each</p>
-                        </div>
-
-                        {/* Quantity Controls */}
-                        <div className="flex items-center gap-2 bg-zinc-600 rounded-lg p-2">
-                          <button
-                            onClick={() => updateQuantity(item.id, item.quantity - 1)}
-                            className="p-1 hover:bg-zinc-500 rounded"
-                          >
-                            <Minus size={16} className="text-white" />
-                          </button>
-                          <span className="w-8 text-center text-white font-semibold">{item.quantity}</span>
-                          <button
-                            onClick={() => updateQuantity(item.id, item.quantity + 1)}
-                            className="p-1 hover:bg-zinc-500 rounded"
-                          >
-                            <Plus size={16} className="text-white" />
-                          </button>
-                        </div>
-
-                        {/* Price & Remove */}
-                        <div className="text-right">
-                          <p className="font-bold text-white">${(item.price * item.quantity).toFixed(2)}</p>
-                          <button
-                            onClick={() => updateQuantity(item.id, 0)}
-                            className="text-red-400 hover:text-red-300 mt-1"
-                          >
-                            <Trash2 size={18} />
-                          </button>
-                        </div>
-                      </motion.div>
-                    ))}
-                  </div>
-                )}
-              </AnimatePresence>
-            </div>
-          </div>
-
-          {/* Summary & Checkout */}
-          <div className="bg-gradient-to-br from-indigo-900 to-purple-900 rounded-2xl p-6 h-fit">
-            <h2 className="text-xl font-bold text-white mb-6">Order Summary</h2>
-
-            <div className="space-y-3 mb-6">
-              <div className="flex justify-between text-zinc-300">
-                <span>Subtotal</span>
-                <span>${subtotal.toFixed(2)}</span>
-              </div>
-              <div className="flex justify-between text-zinc-300">
-                <span>Tax (10%)</span>
-                <span>${tax.toFixed(2)}</span>
-              </div>
-              {discount > 0 && (
-                <div className="flex justify-between text-green-400">
-                  <span>Discount ({promoDiscount}%)</span>
-                  <span>-${discount.toFixed(2)}</span>
-                </div>
-              )}
-              <div className="border-t border-zinc-600 pt-3 flex justify-between text-white font-bold text-lg">
-                <span>Total</span>
-                <span>${total.toFixed(2)}</span>
-              </div>
-            </div>
-
-            {/* Promo Code */}
-            <div className="mb-6">
-              <label className="block text-sm font-medium text-white mb-2">Promo Code</label>
-              <div className="flex gap-2">
-                <input
-                  type="text"
-                  value={promoCode}
-                  onChange={(e) => setPromoCode(e.target.value)}
-                  placeholder="e.g. SAVE10"
-                  className="flex-1 bg-zinc-700 text-white px-3 py-2 rounded-lg placeholder-zinc-500 focus:outline-none focus:ring-2 focus:ring-indigo-400"
-                />
-                <button
-                  onClick={applyPromo}
-                  className="bg-green-500 hover:bg-green-600 text-white px-4 py-2 rounded-lg font-medium transition-colors"
-                >
-                  Apply
-                </button>
-              </div>
-              <p className="text-xs text-zinc-400 mt-1">Try: SAVE10, SAVE20, WELCOME</p>
-            </div>
-
-            {/* Checkout Button */}
-            <motion.button
-              whileTap={{ scale: 0.95 }}
-              onClick={handleCheckout}
-              disabled={cart.length === 0}
-              className="w-full bg-gradient-to-r from-green-500 to-emerald-600 hover:from-green-600 hover:to-emerald-700 disabled:from-zinc-600 disabled:to-zinc-700 text-white py-3 rounded-lg font-bold text-lg transition-all duration-200 flex items-center justify-center gap-2"
-            >
-              <ShoppingCart size={20} /> Checkout
-            </motion.button>
-
-            <p className="text-xs text-zinc-400 text-center mt-3">
-              Safe, secure checkout. We accept all major payment methods.
+      {placed && (
+        <div className="card" style={{
+          marginBottom: 24,
+          background: 'rgba(34,197,94,0.08)',
+          border: '1px solid rgba(34,197,94,0.25)',
+          display: 'flex', justifyContent: 'space-between', alignItems: 'center',
+          gap: 12, flexWrap: 'wrap',
+        }}>
+          <div>
+            <span className="badge badge-green">ORDER PLACED</span>
+            <p style={{ marginTop: 8, color: 'var(--text-hi)', fontWeight: 600 }}>
+              Order #{placed.id} sent to the kitchen — total ${placed.total.toFixed(2)}
             </p>
           </div>
+          <button className="btn btn-ghost btn-sm" onClick={() => setPlaced(null)}>Dismiss</button>
         </div>
+      )}
+
+      <div className="grid-2" style={{ gridTemplateColumns: 'minmax(0,1fr) 340px', gap: 20, alignItems: 'start' }}>
+        {/* ── Cart items ───────────────────────────── */}
+        <div className="card" style={{ padding: 0, overflow: 'hidden' }}>
+          <div style={{
+            padding: '16px 20px',
+            borderBottom: '1px solid var(--border)',
+            display: 'flex', alignItems: 'center', justifyContent: 'space-between',
+          }}>
+            <h2 style={{ fontFamily: 'var(--font-display)', fontSize: 16, fontWeight: 700, color: 'var(--text-hi)' }}>
+              Items ({cart.reduce((n, i) => n + i.qty, 0)})
+            </h2>
+            {cart.length > 0 && (
+              <button className="btn btn-ghost btn-sm" onClick={() => setCart([])}>Clear all</button>
+            )}
+          </div>
+
+          {cart.length === 0 ? (
+            <div className="empty-state">
+              <span style={{ fontSize: 28 }}>⬢</span>
+              <span>Your cart is empty.</span>
+              <Link to="/menu" className="btn btn-primary btn-sm" style={{ marginTop: 8 }}>
+                Browse the menu
+              </Link>
+            </div>
+          ) : (
+            <ul style={{ listStyle: 'none', margin: 0, padding: 0 }}>
+              {cart.map((item, idx) => (
+                <li
+                  key={item.id}
+                  style={{
+                    display: 'flex', gap: 14, alignItems: 'center',
+                    padding: '16px 20px',
+                    borderBottom: idx === cart.length - 1 ? 'none' : '1px solid var(--border)',
+                    animation: `cardIn 0.35s ${idx * 0.05}s var(--ease-out) both`,
+                  }}
+                >
+                  <div style={{
+                    width: 64, height: 64, borderRadius: 10, overflow: 'hidden',
+                    background: 'var(--surface2)', flexShrink: 0,
+                    border: '1px solid var(--border)',
+                  }}>
+                    {item.image && (
+                      <img src={item.image} alt={item.name}
+                           style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
+                    )}
+                  </div>
+
+                  <div style={{ flex: 1, minWidth: 0 }}>
+                    <p style={{
+                      fontFamily: 'var(--font-display)',
+                      fontSize: 14, fontWeight: 700, color: 'var(--text-hi)',
+                      letterSpacing: '-0.2px',
+                    }}>{item.name}</p>
+                    <p style={{
+                      fontFamily: 'var(--font-mono)',
+                      fontSize: 11, color: 'var(--text-mid)', marginTop: 2,
+                    }}>${item.price.toFixed(2)} × {item.qty}</p>
+                  </div>
+
+                  <div style={{
+                    display: 'inline-flex', alignItems: 'center', gap: 8,
+                    background: 'var(--surface2)',
+                    border: '1px solid var(--border)',
+                    borderRadius: 99,
+                    padding: '4px 6px',
+                  }}>
+                    <button
+                      onClick={() => updateQty(item.id, -1)}
+                      aria-label="Decrease quantity"
+                      style={{
+                        width: 24, height: 24, borderRadius: '50%',
+                        background: 'transparent', border: 'none',
+                        color: 'var(--text)', cursor: 'pointer', fontSize: 14,
+                      }}
+                    >−</button>
+                    <span style={{
+                      fontFamily: 'var(--font-mono)', fontSize: 12,
+                      color: 'var(--text-hi)', minWidth: 18, textAlign: 'center',
+                    }}>{item.qty}</span>
+                    <button
+                      onClick={() => updateQty(item.id, +1)}
+                      aria-label="Increase quantity"
+                      style={{
+                        width: 24, height: 24, borderRadius: '50%',
+                        background: 'var(--accent)', border: 'none',
+                        color: '#fff', cursor: 'pointer', fontSize: 14,
+                      }}
+                    >+</button>
+                  </div>
+
+                  <div style={{
+                    fontFamily: 'var(--font-display)',
+                    fontSize: 15, fontWeight: 700, color: 'var(--text-hi)',
+                    minWidth: 70, textAlign: 'right',
+                  }}>
+                    ${(item.price * item.qty).toFixed(2)}
+                  </div>
+
+                  <button
+                    onClick={() => removeItem(item.id)}
+                    aria-label={`Remove ${item.name}`}
+                    style={{
+                      width: 28, height: 28, borderRadius: 8,
+                      background: 'rgba(239,68,68,0.1)',
+                      border: '1px solid rgba(239,68,68,0.2)',
+                      color: 'var(--red)', cursor: 'pointer', fontSize: 14,
+                    }}
+                  >×</button>
+                </li>
+              ))}
+            </ul>
+          )}
+        </div>
+
+        {/* ── Summary ─────────────────────────────── */}
+        <aside className="card" style={{
+          position: 'sticky', top: 84,
+          padding: 24, display: 'flex', flexDirection: 'column', gap: 18,
+        }}>
+          <h2 style={{ fontFamily: 'var(--font-display)', fontSize: 16, fontWeight: 700, color: 'var(--text-hi)' }}>
+            Summary
+          </h2>
+
+          <div style={{ display: 'flex', flexDirection: 'column', gap: 10, fontSize: 13 }}>
+            <Row label="Subtotal" value={`$${subtotal.toFixed(2)}`} />
+            <Row label="Tax (10%)" value={`$${tax.toFixed(2)}`} />
+            {discount > 0 && (
+              <Row
+                label={`Discount (${promoPct}%)`}
+                value={`-$${discount.toFixed(2)}`}
+                valueColor="var(--green)"
+              />
+            )}
+            <div style={{ height: 1, background: 'var(--border)', margin: '6px 0' }} />
+            <Row
+              label="Total"
+              value={`$${total.toFixed(2)}`}
+              bold
+            />
+          </div>
+
+          {/* Promo */}
+          <div>
+            <label style={{
+              fontFamily: 'var(--font-mono)', fontSize: 10,
+              color: 'var(--text-mid)', letterSpacing: '0.1em',
+              display: 'block', marginBottom: 6, textTransform: 'uppercase',
+            }}>Promo code</label>
+
+            <div style={{ display: 'flex', gap: 6 }}>
+              <input
+                className="input"
+                placeholder="e.g. SAVE10"
+                value={promoInput}
+                onChange={e => setPromoInput(e.target.value)}
+                onKeyDown={e => e.key === 'Enter' && applyPromo()}
+                style={{ flex: 1 }}
+              />
+              {promoPct > 0 ? (
+                <button className="btn btn-ghost btn-sm" onClick={clearPromo}>✕</button>
+              ) : (
+                <button className="btn btn-primary btn-sm" onClick={applyPromo}>Apply</button>
+              )}
+            </div>
+            {promoError && (
+              <p style={{ color: 'var(--red)', fontSize: 11, marginTop: 6 }}>{promoError}</p>
+            )}
+            {promoPct > 0 && (
+              <p style={{ color: 'var(--green)', fontSize: 11, marginTop: 6 }}>
+                ✓ {promoInput.toUpperCase()} applied — {promoPct}% off
+              </p>
+            )}
+            <p style={{ color: 'var(--text-mid)', fontSize: 10, marginTop: 6 }}>
+              Try <span style={{ fontFamily: 'var(--font-mono)' }}>SAVE10</span>,{' '}
+              <span style={{ fontFamily: 'var(--font-mono)' }}>SAVE20</span>,{' '}
+              <span style={{ fontFamily: 'var(--font-mono)' }}>WELCOME</span>
+            </p>
+          </div>
+
+          <button
+            onClick={placeOrder}
+            disabled={cart.length === 0}
+            className="btn btn-primary"
+            style={{
+              padding: '14px 16px',
+              fontFamily: 'var(--font-mono)',
+              letterSpacing: '0.08em',
+              opacity: cart.length === 0 ? 0.5 : 1,
+              cursor: cart.length === 0 ? 'not-allowed' : 'pointer',
+            }}
+          >
+            CHECKOUT · ${total.toFixed(2)}
+          </button>
+
+          <p style={{
+            color: 'var(--text-mid)', fontSize: 10, textAlign: 'center',
+            lineHeight: 1.5,
+          }}>
+            Secure checkout · Orders route straight to the kitchen display.
+          </p>
+        </aside>
       </div>
+    </div>
+  );
+}
+
+function Row({ label, value, valueColor, bold = false }) {
+  return (
+    <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'baseline' }}>
+      <span style={{
+        color: 'var(--text-mid)',
+        fontWeight: bold ? 700 : 400,
+        fontSize: bold ? 14 : 13,
+      }}>{label}</span>
+      <span style={{
+        color: valueColor || 'var(--text-hi)',
+        fontWeight: bold ? 800 : 600,
+        fontSize: bold ? 18 : 13,
+        fontFamily: bold ? 'var(--font-display)' : 'var(--font-body)',
+      }}>{value}</span>
     </div>
   );
 }
