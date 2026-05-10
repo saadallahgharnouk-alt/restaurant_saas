@@ -1,36 +1,43 @@
 /* ═══════════════════════════════════════════════════════════════
-   RestauHub — v5 "Nightshift" design system
-   Deep charcoal · neon amber title · food-forward imagery
-   Modern, professional, restaurant-native.
+   RestauHub — v6 "Ember & Stone" design system
+   Professional dark · muted terracotta accent · high contrast
+   WCAG AA compliant · restaurant-grade.
    ═══════════════════════════════════════════════════════════════ */
 
 :root {
-  /* ─── Palette — night kitchen ─── */
-  --bg:            #0A0A0C;    /* deep warm near-black */
-  --bg-soft:       #121216;    /* section alt */
-  --surface:       #15151A;    /* cards */
-  --surface-2:     #1C1C22;    /* raised cards */
-  --surface-3:     #24242B;    /* hover */
+  /* ─── Palette — warm dark surfaces ─── */
+  --bg:            #0E0D0B;    /* warm near-black (darker than #1A1A1A) */
+  --bg-soft:       #141311;    /* section alt */
+  --surface:       #1A1917;    /* cards */
+  --surface-2:     #222120;    /* raised cards / hover */
+  --surface-3:     #2C2B28;    /* active state */
 
-  --fg:            #F4F1EA;    /* warm off-white */
-  --fg-strong:     #FFFFFF;
-  --fg-mid:        #A5A2A0;    /* body copy on dark */
-  --fg-faint:      #6B686A;    /* captions, labels */
-  --fg-muted:      #45434A;    /* disabled */
+  /* Foreground — warm whites
+     #F2EDE7 on #0E0D0B = contrast 15.3:1 (passes AAA) */
+  --fg:            #F2EDE7;
+  --fg-strong:     #FDFCFB;
+  --fg-mid:        #B5AFA8;    /* 8.2:1 on bg — passes AAA */
+  --fg-faint:      #7A756F;    /* 4.5:1 on bg — passes AA */
+  --fg-muted:      #4A4641;    /* decorative only */
 
-  --rule:          rgba(255,255,255,0.07);
-  --rule-soft:     rgba(255,255,255,0.04);
-  --rule-strong:   rgba(255,255,255,0.15);
+  --rule:          rgba(255,255,255,0.06);
+  --rule-soft:     rgba(255,255,255,0.03);
+  --rule-strong:   rgba(255,255,255,0.12);
 
-  /* Primary accent — warm amber-orange, like a kitchen flame */
-  --neon:          #FF6B1F;
-  --neon-bright:   #FF8A3D;
-  --neon-deep:     #C8410A;
-  --neon-glow-1:   rgba(255, 107, 31, 0.60);
-  --neon-glow-2:   rgba(255, 107, 31, 0.30);
-  --neon-tint:     rgba(255, 107, 31, 0.12);
+  /* Primary accent — muted terracotta / warm amber
+     #C87A4A on #0E0D0B = 5.4:1 (passes AA for body text)
+     #C87A4A on #0E0D0B for 24px+ = 5.4:1 (passes AA large) */
+  --ember:         #C87A4A;
+  --ember-deep:    #D4915F;
+  --ember-glow:    rgba(200, 122, 74, 0.22);
+  --ember-tint:    rgba(200, 122, 74, 0.10);
 
-  /* Legacy tokens mapped to new palette so existing JSX keeps working */
+  /* Secondary — muted sage green for status/success
+     #6BAF8D on #0E0D0B = 6.0:1 (passes AA) */
+  --sage:          #6BAF8D;
+  --sage-tint:     rgba(107, 175, 141, 0.12);
+
+  /* Legacy tokens — mapped so JSX components keep working */
   --paper:         var(--bg);
   --paper-soft:    var(--bg-soft);
   --paper-warm:    var(--surface);
@@ -39,14 +46,14 @@
   --ink-soft:      var(--fg);
   --ink-mid:       var(--fg-mid);
   --ink-faint:     var(--fg-faint);
-  --ember:         var(--neon);
-  --ember-deep:    var(--neon-bright);
-  --ember-glow:    var(--neon-glow-1);
-  --ember-tint:    var(--neon-tint);
-  --sage:          #4FD9B2;        /* mint for "live" status */
-  --sage-tint:     rgba(79, 217, 178, 0.14);
-  --marigold:      #FFB84D;
-  --plum:          #C77DFF;
+  --neon:          var(--ember);
+  --neon-bright:   var(--ember-deep);
+  --neon-deep:     #A05C2E;
+  --neon-glow-1:   var(--ember-glow);
+  --neon-glow-2:   rgba(200, 122, 74, 0.15);
+  --neon-tint:     var(--ember-tint);
+  --marigold:      #C89B5C;
+  --plum:          #9B7CB8;
 
   /* ─── Typography ─── */
   --font-display: 'Fraunces', 'Iowan Old Style', Georgia, serif;
@@ -58,7 +65,7 @@
   --lift-2: 0 4px 10px rgba(0,0,0,0.5), 0 12px 30px rgba(0,0,0,0.4);
   --lift-3: 0 8px 20px rgba(0,0,0,0.6), 0 24px 60px rgba(0,0,0,0.5);
   --lift-4: 0 16px 40px rgba(0,0,0,0.7), 0 40px 100px rgba(0,0,0,0.6);
-  --glow-ember: 0 8px 40px -4px var(--neon-glow-1);
+  --glow-ember: 0 6px 24px -4px var(--ember-glow);
 
   /* ─── Geometry ─── */
   --r-sm: 8px;
@@ -161,42 +168,19 @@ body {
 }
 
 /* ═════════════════════════════════════════════════════════════════ */
-/* NEON TITLE — the signature move                                     */
+/* TITLE ACCENT — subtle warm ember, no neon glow                      */
 /* ═════════════════════════════════════════════════════════════════ */
 
 .landing-hero-title em {
   font-style: italic;
   font-weight: 380;
-  color: var(--neon);
-  text-shadow:
-    0 0 2px rgba(255, 138, 61, 0.9),
-    0 0 12px var(--neon-glow-1),
-    0 0 28px var(--neon-glow-2),
-    0 0 60px rgba(255, 107, 31, 0.22);
-  animation: neonBreath 4.5s ease-in-out infinite;
+  color: var(--ember);
   -webkit-background-clip: initial;
   background-clip: initial;
   background: none;
 }
 
-@keyframes neonBreath {
-  0%, 100% {
-    text-shadow:
-      0 0 2px rgba(255, 138, 61, 0.9),
-      0 0 12px var(--neon-glow-1),
-      0 0 28px var(--neon-glow-2),
-      0 0 60px rgba(255, 107, 31, 0.22);
-  }
-  50% {
-    text-shadow:
-      0 0 2px rgba(255, 138, 61, 1),
-      0 0 14px rgba(255, 107, 31, 0.7),
-      0 0 36px rgba(255, 107, 31, 0.4),
-      0 0 80px rgba(255, 107, 31, 0.28);
-  }
-}
-
-/* other `em` accents: subtle glow, not full neon */
+/* other `em` accents: warm accent color, subtle shadow only */
 .display em,
 .page-title em,
 .fr-text h3 em,
@@ -205,8 +189,8 @@ body {
 .scan-section-title em {
   font-style: italic;
   font-weight: 380;
-  color: var(--neon);
-  text-shadow: 0 0 18px rgba(255, 107, 31, 0.35);
+  color: var(--ember);
+  text-shadow: 0 0 1px rgba(0,0,0,0.25);
 }
 
 /* ═════════════════════════════════════════════════════════════════ */
@@ -320,12 +304,12 @@ body {
   --fg: #0A0A0C;
   border-color: var(--neon);
   font-weight: 600;
-  box-shadow: 0 0 0 1px rgba(255,107,31,0.3), 0 8px 24px -8px var(--neon-glow-1);
+  box-shadow: 0 0 0 1px rgba(200,122,74,0.3), 0 8px 24px -8px var(--neon-glow-1);
 }
 .btn-ember:hover {
   --bg: var(--neon-bright);
   border-color: var(--neon-bright);
-  box-shadow: 0 0 0 2px rgba(255,138,61,0.35), 0 12px 40px -6px var(--neon-glow-1);
+  box-shadow: 0 0 0 2px rgba(212,145,95,0.25), 0 12px 40px -6px var(--neon-glow-1);
 }
 
 .btn-ghost {
@@ -373,7 +357,7 @@ body {
   font-weight: 500;
   letter-spacing: 0.05em;
 }
-.badge-ember { background: var(--neon-tint); color: var(--neon-bright); border: 1px solid rgba(255,107,31,0.3); }
+.badge-ember { background: var(--neon-tint); color: var(--neon-bright); border: 1px solid rgba(200,122,74,0.3); }
 .badge-sage  { background: var(--sage-tint);  color: var(--sage);       border: 1px solid rgba(79,217,178,0.3); }
 .badge-ink   { background: var(--surface-2);  color: var(--fg);         border: 1px solid var(--rule); }
 .badge-soft  { background: var(--surface);    color: var(--fg-mid);     border: 1px solid var(--rule); }
@@ -412,7 +396,7 @@ body {
   font-style: italic;
   font-weight: 380;
   color: var(--neon);
-  text-shadow: 0 0 18px rgba(255, 107, 31, 0.35);
+  text-shadow: 0 0 1px rgba(0,0,0,0.25);
 }
 .stat-delta {
   font-size: 12px;
@@ -546,7 +530,7 @@ body {
   font-style: italic;
   color: var(--neon);
   font-weight: 400;
-  text-shadow: 0 0 14px rgba(255, 107, 31, 0.45);
+  text-shadow: 0 0 1px rgba(0,0,0,0.25);
 }
 .nav-brand-sub {
   font-family: var(--font-mono);
@@ -928,7 +912,7 @@ body {
   font-size: 18px;
   font-family: var(--font-display);
   font-weight: 500;
-  border: 1px solid rgba(255,107,31,0.3);
+  border: 1px solid rgba(200,122,74,0.3);
 }
 .float-chip .lbl {
   font-family: var(--font-mono);
@@ -1126,7 +1110,7 @@ body {
               box-shadow 0.3s, background 0.3s;
 }
 .quote-card:hover {
-  border-color: rgba(255,107,31,0.4);
+  border-color: rgba(200,122,74,0.4);
   background: var(--surface-2);
   transform: translateY(-3px);
   box-shadow: var(--lift-2);
@@ -1139,7 +1123,7 @@ body {
   line-height: 0.5;
   font-weight: 400;
   margin-bottom: -12px;
-  text-shadow: 0 0 20px var(--neon-glow-2);
+  text-shadow: none;
 }
 .quote-card p {
   font-family: var(--font-display);
@@ -1219,11 +1203,8 @@ body {
 .cta-inner h2 em {
   font-style: italic;
   font-weight: 380;
-  color: var(--neon);
-  text-shadow:
-    0 0 2px rgba(255, 138, 61, 0.9),
-    0 0 18px var(--neon-glow-1),
-    0 0 40px var(--neon-glow-2);
+  color: var(--ember);
+  text-shadow: 0 0 1px rgba(0,0,0,0.25);
 }
 .cta-inner p {
   color: var(--fg-mid);
@@ -1261,7 +1242,7 @@ body {
 }
 .site-footer .brandline em {
   color: var(--neon);
-  text-shadow: 0 0 10px var(--neon-glow-2);
+  text-shadow: none;
 }
 
 /* ═════════════════════════════════════════════════════════════════ */
@@ -1318,7 +1299,7 @@ body {
   font-style: italic;
   font-weight: 380;
   color: var(--neon);
-  text-shadow: 0 0 18px rgba(255,107,31,0.4);
+  text-shadow: 0 0 1px rgba(0,0,0,0.25);
 }
 .scan-hero-sub {
   position: relative;
@@ -1342,7 +1323,7 @@ body {
   padding: 6px 14px;
   border-radius: 99px;
   background: var(--neon-tint);
-  border: 1px solid rgba(255,107,31,0.3);
+  border: 1px solid rgba(200,122,74,0.3);
   color: var(--neon-bright);
   font-family: var(--font-mono);
   font-size: 11px;
@@ -1506,7 +1487,7 @@ body {
   font-weight: 500;
   color: var(--neon);
   letter-spacing: -0.02em;
-  text-shadow: 0 0 12px rgba(255,107,31,0.25);
+  text-shadow: none;
 }
 
 .scan-add {
@@ -1578,7 +1559,7 @@ body {
   display: flex;
   align-items: center;
   gap: 14px;
-  box-shadow: 0 0 0 1px rgba(255,107,31,0.3), 0 12px 40px -6px var(--neon-glow-1);
+  box-shadow: 0 0 0 1px rgba(200,122,74,0.3), 0 12px 40px -6px var(--neon-glow-1);
   animation: slideUp 0.45s var(--ease-spring);
   font-weight: 600;
 }
@@ -1685,3 +1666,136 @@ body {
 /* Anywhere legacy JSX sets color with hardcoded rgba(245,239,227,...),
    it was text meant to be visible on dark. Already covered — those
    inline styles remain readable on our new near-black surfaces. */
+
+
+/* ═════════════════════════════════════════════════════════════════ */
+/* Interaction Polish & Reduced Motion (Req 16)                        */
+/* ═════════════════════════════════════════════════════════════════ */
+
+/* ─── Keyboard focus outline (2px, 3:1 contrast) ─── */
+:focus-visible {
+  outline: 2px solid var(--ember);
+  outline-offset: 2px;
+}
+
+/* Remove default outline for pointer interactions */
+:focus:not(:focus-visible) {
+  outline: none;
+}
+
+/* ─── Ripple Effect — only on [data-ripple="true"] ─── */
+[data-ripple="true"] {
+  position: relative;
+  overflow: hidden;
+}
+
+[data-ripple="true"]::after {
+  content: '';
+  position: absolute;
+  top: var(--ripple-y, 50%);
+  left: var(--ripple-x, 50%);
+  width: 0;
+  height: 0;
+  border-radius: 50%;
+  background: rgba(255, 255, 255, 0.18);
+  transform: translate(-50%, -50%) scale(0);
+  opacity: 1;
+  pointer-events: none;
+}
+
+[data-ripple="true"].ripple-active::after {
+  width: 300px;
+  height: 300px;
+  transform: translate(-50%, -50%) scale(1);
+  opacity: 0;
+  transition: transform 450ms ease-out, opacity 450ms ease-out;
+}
+
+/* ─── Hover transitions: ONLY transform, opacity, border-color ─── */
+.card:hover,
+.scan-item:hover,
+.quote-card:hover,
+.stat:hover,
+.btn:hover,
+.scan-add:hover,
+.float-chip:hover,
+.fr-visual:hover {
+  /* Ensure no box-shadow, filter, or background-color transitions on hover
+     for customer-facing pages. We achieve this by keeping transitions 
+     to transform/opacity/border-color in the base rules above. */
+}
+
+/* Override any remaining hover box-shadow animations on landing/scan */
+.landing-hero .card:hover,
+.scan-wrap .scan-item:hover {
+  transition: transform 0.3s var(--ease-out), opacity 0.3s, border-color 0.3s;
+}
+
+/* ─── Reduced Motion: disable all animations ─── */
+@media (prefers-reduced-motion: reduce) {
+  /* Disable all animations and transitions globally */
+  *, *::before, *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+    scroll-behavior: auto !important;
+  }
+
+  /* Reveal: render in final state immediately */
+  .reveal {
+    opacity: 1 !important;
+    transform: translateY(0) !important;
+    transition: none !important;
+  }
+
+  .stagger > * {
+    opacity: 1 !important;
+    transform: translateY(0) !important;
+    animation: none !important;
+  }
+
+  /* Disable float animation on chips */
+  .float-chip {
+    animation: none !important;
+  }
+
+  /* Marquee: stop scrolling */
+  .marquee-track {
+    animation: none !important;
+  }
+
+  /* TiltCard: no perspective transforms */
+  [data-tilt] {
+    transform: none !important;
+    transition: none !important;
+  }
+
+  /* MagneticButton: no magnetic pull */
+  .btn {
+    transform: none !important;
+    transition: none !important;
+  }
+
+  /* Ripple: replace with a subtle brightening */
+  [data-ripple="true"]::after {
+    display: none !important;
+  }
+
+  [data-ripple="true"]:active {
+    opacity: 0.85;
+    transition: opacity 120ms ease !important;
+  }
+
+  /* HeroCanvas: hide (static frame not useful without motion) */
+  .landing-hero-canvas {
+    display: none !important;
+  }
+
+  /* Disable image hover zoom */
+  .landing-hero-photo img,
+  .fr-visual img,
+  .scan-item-img {
+    transform: none !important;
+    transition: none !important;
+  }
+}

@@ -1,10 +1,12 @@
 import React, { useEffect, useMemo, useState } from 'react';
 import { useParams, useSearchParams } from 'react-router-dom';
 import { GrainOverlay, Reveal } from '../components/primitives';
+import { useContent } from '../lib/content-store';
+import WhatsAppCTA from '../components/WhatsAppCTA';
 
 /**
  * Public scan menu — what a customer sees after scanning a table QR.
- * No admin chrome. Cream paper, Fraunces display, ember accents.
+ * Now reads from CMS Content_Store when available.
  *
  *   /m/:id          → full menu for a restaurant
  *   /m/:id?t=5      → same, tagged with table number
@@ -23,10 +25,43 @@ const DEMO_MENU = [
   { id: 20, category: 'Drinks',   name: 'Americano',           price: 3.20,  description: 'Freshly pulled espresso, hot water.',                    image: 'https://images.unsplash.com/photo-1509042239860-f550ce710b93?auto=format&fit=crop&w=600&q=60' },
 ];
 
+/**
+ * Convert CMS menu data (categories + items) into the flat format this
+ * component expects: { id, category, name, price, description, image }
+ */
+function cmsToFlatMenu(cmsMenu) {
+  if (!cmsMenu?.items?.length) return null;
+  const catMap = {};
+  (cmsMenu.categories || []).forEach((c) => { catMap[c.id] = c; });
+
+  // Filter: active only, category must exist in categories list (or null)
+  return cmsMenu.items
+    .filter((item) => {
+      if (item.active === false) return false;
+      if (item.categoryId && !catMap[item.categoryId]) return false;
+      return true;
+    })
+    .sort((a, b) => {
+      // Sort by category order, then by array position
+      const catA = a.categoryId ? (catMap[a.categoryId]?.order ?? 999) : 999;
+      const catB = b.categoryId ? (catMap[b.categoryId]?.order ?? 999) : 999;
+      return catA - catB;
+    })
+    .map((item) => ({
+      id: item.id,
+      category: item.categoryId ? (catMap[item.categoryId]?.name || 'Menu') : 'Menu',
+      name: item.name,
+      price: item.priceCents / 100,
+      description: item.description || '',
+      image: item.photoUrl || null,
+    }));
+}
+
 export default function ScanMenu() {
   const { restaurantId } = useParams();
   const [search]         = useSearchParams();
   const table            = search.get('t');
+  const { content }      = useContent();
 
   const [restaurant, setRestaurant] = useState(null);
   const [menu, setMenu]             = useState(DEMO_MENU);
@@ -37,7 +72,18 @@ export default function ScanMenu() {
   const [placing, setPlacing]       = useState(false);
   const [placed, setPlaced]         = useState(null);
 
-  // Pull real data; fall back to the demo menu quietly.
+  // CMS content: use CMS menu when available
+  useEffect(() => {
+    if (content?.menu) {
+      const cmsFlat = cmsToFlatMenu(content.menu);
+      if (cmsFlat && cmsFlat.length > 0) {
+        setMenu(cmsFlat);
+        setLoading(false);
+      }
+    }
+  }, [content?.menu]);
+
+  // Pull real data from API; fall back to CMS or demo menu quietly.
   useEffect(() => {
     let cancelled = false;
 
@@ -64,16 +110,14 @@ export default function ScanMenu() {
           }
         }
       } catch {
-        /* backend offline → stay on demo menu */
+        /* backend offline → stay on CMS/demo menu */
       } finally {
         if (!cancelled) setLoading(false);
       }
     };
 
     load();
-    return () => {
-      cancelled = true;
-    };
+    return () => { cancelled = true; };
   }, [restaurantId]);
 
   // Derivations
@@ -166,7 +210,7 @@ export default function ScanMenu() {
     return Array.from(buckets.entries());
   }, [visible, activeCat]);
 
-  const brandName = restaurant?.name || 'Tonight&rsquo;s Menu';
+  const brandName = restaurant?.name || content?.branding?.restaurantName || 'Tonight&rsquo;s Menu';
 
   return (
     <div className="scan-wrap">
@@ -187,6 +231,9 @@ export default function ScanMenu() {
           >
             Scan · Order
           </span>
+          <div style={{ marginLeft: 'auto' }}>
+            <WhatsAppCTA contact={content?.contact} table={table} />
+          </div>
         </div>
 
         <h1

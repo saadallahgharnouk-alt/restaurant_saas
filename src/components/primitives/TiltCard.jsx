@@ -22,9 +22,14 @@ export default function TiltCard({
   const outerRef = useRef(null);
   const innerRef = useRef(null);
   const glareRef = useRef(null);
+  const reducedMotion = useRef(
+    typeof window !== 'undefined' &&
+    window.matchMedia?.('(prefers-reduced-motion: reduce)').matches
+  );
 
   const onMove = useCallback(
     (e) => {
+      if (reducedMotion.current) return;
       const outer = outerRef.current;
       const inner = innerRef.current;
       if (!outer || !inner) return;
@@ -42,6 +47,7 @@ export default function TiltCard({
   );
 
   const onLeave = useCallback(() => {
+    if (reducedMotion.current) return;
     const inner = innerRef.current;
     if (!inner) return;
     inner.style.transform = '';

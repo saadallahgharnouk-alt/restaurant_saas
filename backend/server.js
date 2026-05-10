@@ -2,12 +2,19 @@ import 'dotenv/config';
 import express from 'express';
 import cors from 'cors';
 import pg from 'pg';
+import fs from 'fs';
+import path from 'path';
+import { fileURLToPath } from 'url';
+import multer from 'multer';
+
+const __filename = fileURLToPath(import.meta.url);
+const __dirname = path.dirname(__filename);
 
 const { Pool } = pg;
 
 const app = express();
 app.use(cors());
-app.use(express.json());
+app.use(express.json({ limit: '5mb' }));
 
 const pool = new Pool({
   connectionString: process.env.DATABASE_URL,
@@ -107,6 +114,102 @@ app.post('/api/orders', async (req, res) => {
     res.status(500).json({ error: 'Failed to submit order' });
   }
 });
+
+// ═══════════════════════════════════════════════════════════════════════════════
+// CMS Content API (Req 14)
+// Persists CMS content to a local JSON file.
+// ═══════════════════════════════════════════════════════════════════════════════
+
+const CONTENT_FILE = path.join(__dirname, 'data', 'content.json');
+const UPLOADS_DIR = path.join(__dirname, 'data', 'uploads');
+
+// Ensure data directories exist
+if (!fs.existsSync(path.join(__dirname, 'data'))) {
+  fs.mkdirSync(path.join(__dirname, 'data'), { recursive: true });
+}
+if (!fs.existsSync(UPLOADS_DIR)) {
+  fs.mkdirSync(UPLOADS_DIR, { recursive: true });
+}
+
+// Serve uploaded media files statically
+app.use('/uploads', express.static(UPLOADS_DIR));
+
+/**
+ * GET /api/content — returns the full CMS content JSON.
+ */
+app.get('/api/content', (req, res) => {
+  try {
+    if (!fs.existsSync(CONTENT_FILE)) {
+      return res.status(404).json({ error: 'No content saved yet' });
+    }
+    const raw = fs.readFileSync(CONTENT_FILE, 'utf8');
+    const content = JSON.parse(raw);
+    res.json(content);
+  } catch (err) {
+    console.error('Content read error:', err.message);
+    res.status(500).json({ error: 'Failed to read content' });
+  }
+});
+
+/**
+ * PUT /api/content — saves the full CMS content JSON.
+ */
+app.put('/api/content', (req, res) => {
+  try {
+    const content = req.body;
+    if (!content || typeof content !== 'object') {
+      return res.status(400).json({ error: 'Body must be a JSON object' });
+    }
+    fs.writeFileSync(CONTENT_FILE, JSON.stringify(content, null, 2), 'utf8');
+    res.json({ success: true, message: 'Content saved' });
+  } catch (err) {
+    console.error('Content write error:', err.message);
+    res.status(500).json({ error: 'Failed to save content' });
+  }
+});
+
+/**
+ * POST /api/content/media — upload a media file (image).
+ * Accepts multipart/form-data with field name "file".
+ * Returns { url: "/uploads/filename.ext" }
+ */
+const upload = multer({
+  storage: multer.diskStorage({
+    destination: (req, file, cb) => cb(null, UPLOADS_DIR),
+    filename: (req, file, cb) => {
+      const ext = path.extname(file.originalname) || '.jpg';
+      const name = `${Date.now()}-${Math.random().toString(36).slice(2, 8)}${ext}`;
+      cb(null, name);
+    },
+  }),
+  limits: { fileSize: 2 * 1024 * 1024 }, // 2 MiB
+  fileFilter: (req, file, cb) => {
+    const allowed = ['image/png', 'image/jpeg', 'image/webp'];
+    if (allowed.includes(file.mimetype)) {
+      cb(null, true);
+    } else {
+      cb(new Error(`Invalid file type: ${file.mimetype}. Accepted: PNG, JPEG, WebP.`));
+    }
+  },
+});
+
+app.post('/api/content/media', (req, res) => {
+  upload.single('file')(req, res, (err) => {
+    if (err) {
+      if (err.code === 'LIMIT_FILE_SIZE') {
+        return res.status(413).json({ error: 'File too large. Maximum: 2 MB.' });
+      }
+      return res.status(400).json({ error: err.message });
+    }
+    if (!req.file) {
+      return res.status(400).json({ error: 'No file provided' });
+    }
+    const url = `/uploads/${req.file.filename}`;
+    res.json({ url, filename: req.file.filename });
+  });
+});
+
+// ═══════════════════════════════════════════════════════════════════════════════
 
 const PORT = process.env.PORT || 5000;
 app.listen(PORT, () => {

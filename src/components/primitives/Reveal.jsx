@@ -23,6 +23,14 @@ export default function Reveal({
   useEffect(() => {
     const el = ref.current;
     if (!el) return;
+
+    // Reduced motion: show immediately, no animation
+    const prefersReduced = window.matchMedia?.('(prefers-reduced-motion: reduce)').matches;
+    if (prefersReduced) {
+      el.classList.add('in');
+      return;
+    }
+
     if (typeof window === 'undefined' || !('IntersectionObserver' in window)) {
       el.classList.add('in');
       return;
