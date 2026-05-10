@@ -8,11 +8,12 @@
 html {
   scroll-behavior: smooth;
   -webkit-text-size-adjust: 100%;
+  background: #0A0A0C;
 }
 
 body {
-  background: #F1E8D3;
-  color: #15213B;
+  background: #0A0A0C;
+  color: #F4F1EA;
   font-family: 'Inter', system-ui, -apple-system, sans-serif;
   font-feature-settings: 'ss01', 'cv11';
   -webkit-font-smoothing: antialiased;
@@ -31,8 +32,8 @@ a { color: inherit; text-decoration: none; }
 button, input, textarea, select { font: inherit; color: inherit; }
 
 ::selection {
-  background: #C84F2B;
-  color: #FAF4E4;
+  background: #FF6B1F;
+  color: #0A0A0C;
 }
 
 /* reduced motion guard */

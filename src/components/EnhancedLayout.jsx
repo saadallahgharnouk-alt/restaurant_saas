@@ -9,14 +9,9 @@ import { GrainOverlay, MagneticButton } from './primitives';
    ─────────────────────────────────────────────────────────────── */
 
 const NAV = [
-  { to: '/',            label: 'Home'        },
-  { to: '/dashboard',   label: 'Dashboard'   },
-  { to: '/menu',        label: 'Menu'        },
-  { to: '/qr',          label: 'QR Studio'   },
-  { to: '/kitchen',     label: 'Kitchen'     },
-  { to: '/order',       label: 'Orders'      },
-  { to: '/analytics',   label: 'Analytics'   },
-  { to: '/restaurants', label: 'Venues'      },
+  { to: '/',          label: 'Home'    },
+  { to: '/menu',      label: 'Menu'    },
+  { to: '/dashboard', label: 'Manager' },
 ];
 
 function isActive(pathname, to) {
@@ -50,7 +45,7 @@ export default function EnhancedLayout({ children }) {
             <span className="nav-brand-name">
               restau<em>hub</em>
             </span>
-            <span className="nav-brand-sub">Restaurant OS</span>
+            <span className="nav-brand-sub">Modern Restaurant OS</span>
           </span>
         </Link>
 
@@ -70,11 +65,11 @@ export default function EnhancedLayout({ children }) {
           <span className="status-dot" aria-label="System status: live">Live</span>
           <MagneticButton
             as={Link}
-            to="/qr"
+            to="/dashboard"
             className="btn btn-ember btn-sm btn-arrow"
             strength={8}
           >
-            New QR
+            Manager
           </MagneticButton>
           <button
             type="button"

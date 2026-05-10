@@ -1,18 +1,18 @@
 <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64" width="64" height="64" role="img" aria-label="RestauHub mark">
   <defs>
     <linearGradient id="rm" x1="0" y1="0" x2="1" y2="1">
-      <stop offset="0%" stop-color="#C84F2B"/>
-      <stop offset="100%" stop-color="#8E2F14"/>
+      <stop offset="0%" stop-color="#FF8A3D"/>
+      <stop offset="100%" stop-color="#FF6B1F"/>
     </linearGradient>
+    <filter id="glow" x="-30%" y="-30%" width="160%" height="160%">
+      <feGaussianBlur stdDeviation="1.5" result="blur"/>
+      <feMerge><feMergeNode in="blur"/><feMergeNode in="SourceGraphic"/></feMerge>
+    </filter>
   </defs>
-  <!-- parchment rounded square, indigo border for zellij feel -->
-  <rect x="4" y="4" width="56" height="56" rx="16" fill="#FAF4E4" stroke="#15213B" stroke-opacity="0.12" stroke-width="1"/>
-  <!-- faint 8-point zellij star in the background -->
-  <path d="M32 12 L38 24 L50 24 L41 32 L44 44 L32 38 L20 44 L23 32 L14 24 L26 24 Z"
-        fill="none" stroke="#15213B" stroke-opacity="0.10" stroke-width="1"/>
-  <!-- stacked flame petals forming an R -->
-  <path d="M20 46 V22 Q20 18 24 18 H36 Q44 18 44 26 Q44 32 38 34 L46 46"
-        fill="none" stroke="url(#rm)" stroke-width="4.5" stroke-linecap="round" stroke-linejoin="round"/>
-  <!-- dot accent -->
-  <circle cx="46" cy="20" r="3" fill="url(#rm)"/>
+  <rect x="2" y="2" width="60" height="60" rx="16" fill="#15151A" stroke="#FF6B1F" stroke-opacity="0.35" stroke-width="1"/>
+  <g filter="url(#glow)">
+    <path d="M20 46 V22 Q20 18 24 18 H36 Q44 18 44 26 Q44 32 38 34 L46 46"
+          fill="none" stroke="url(#rm)" stroke-width="4.5" stroke-linecap="round" stroke-linejoin="round"/>
+    <circle cx="46" cy="20" r="3" fill="url(#rm)"/>
+  </g>
 </svg>
