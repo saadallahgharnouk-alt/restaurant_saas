@@ -556,13 +556,28 @@ function SiteEditor() {
 
 function MenuEditor() {
   const c = useContent();
-  const { addMenuItem, updateMenuItem, deleteMenuItem } = useContentActions();
+  const {
+    addMenuItem,
+    updateMenuItem,
+    deleteMenuItem,
+    addCategory,
+    updateCategory,
+    moveCategory,
+    deleteCategory,
+  } = useContentActions();
   const toast = useToast();
 
-  const [editing, setEditing] = useState(null); // item id currently open
-  const currency = c.brand.currency || '$';
+  const [editing, setEditing]       = useState(null); // item id currently open
+  const [newCatName, setNewCatName] = useState('');
 
-  const categories = c.menu.categories || [];
+  const currency   = c.brand.currency || '$';
+  const categories = useMemo(
+    () =>
+      (c.menu.categories || [])
+        .slice()
+        .sort((a, b) => (a.order || 0) - (b.order || 0)),
+    [c.menu.categories]
+  );
 
   const grouped = useMemo(() => {
     const m = new Map();
@@ -574,20 +589,187 @@ function MenuEditor() {
     return m;
   }, [categories, c.menu.items]);
 
-  const addNew = () => {
+  const addNew = (categoryId) => {
+    const catId = categoryId || categories[0]?.id || 'starters';
     const id = `item-${Date.now()}`;
     addMenuItem({
       id,
       name: 'New dish',
-      category: categories[0]?.id || 'starters',
+      category: catId,
       price: 0,
     });
     setEditing(id);
     toast.success('New dish added — fill in the details');
   };
 
+  const submitNewCategory = (e) => {
+    e?.preventDefault?.();
+    const name = newCatName.trim();
+    if (!name) return;
+    addCategory(name);
+    setNewCatName('');
+    toast.success(`Category "${name}" added`);
+  };
+
+  const handleDeleteCategory = (cat) => {
+    if (categories.length <= 1) {
+      toast.error('Keep at least one category.');
+      return;
+    }
+    const count = (grouped.get(cat.id) || []).length;
+    const fallback = categories.find((c) => c.id !== cat.id);
+    const msg =
+      count === 0
+        ? `Delete the "${cat.name}" category?`
+        : `"${cat.name}" has ${count} dish${count === 1 ? '' : 'es'}. ` +
+          `They'll move to "${fallback.name}". Continue?`;
+    if (!confirm(msg)) return;
+    deleteCategory(cat.id, fallback.id);
+    toast.success(`Category "${cat.name}" removed`);
+  };
+
   return (
     <div>
+      {/* ─── Category manager ────────────────────────────── */}
+      <section className="admin-card">
+        <div
+          style={{
+            display: 'flex',
+            justifyContent: 'space-between',
+            alignItems: 'flex-end',
+            gap: 12,
+            flexWrap: 'wrap',
+            marginBottom: 10,
+          }}
+        >
+          <div>
+            <span className="eyebrow">Categories</span>
+            <h2 className="admin-section-title">
+              Sections of the <em>card</em>
+            </h2>
+            <p
+              style={{
+                color: 'var(--ink-mid)',
+                fontSize: 14,
+                maxWidth: '60ch',
+                lineHeight: 1.55,
+              }}
+            >
+              Reorder, rename, add new (Salads, Cocktails, Wine, …), or remove.
+              Removing a category moves its dishes to the first remaining one.
+            </p>
+          </div>
+
+          <form
+            onSubmit={submitNewCategory}
+            style={{ display: 'flex', gap: 8, flexWrap: 'wrap' }}
+          >
+            <input
+              className="input"
+              value={newCatName}
+              onChange={(e) => setNewCatName(e.target.value)}
+              placeholder="New category name…"
+              style={{ minWidth: 220 }}
+            />
+            <button type="submit" className="btn btn-ember btn-arrow btn-sm">
+              Add category
+            </button>
+          </form>
+        </div>
+
+        <div
+          style={{
+            display: 'grid',
+            gridTemplateColumns: 'repeat(auto-fill, minmax(260px, 1fr))',
+            gap: 10,
+            marginTop: 18,
+          }}
+        >
+          {categories.map((cat, i) => {
+            const count = (grouped.get(cat.id) || []).length;
+            return (
+              <div
+                key={cat.id}
+                style={{
+                  background: 'var(--paper-soft)',
+                  border: '1px solid var(--rule)',
+                  borderRadius: 14,
+                  padding: '12px 14px',
+                  display: 'flex',
+                  alignItems: 'center',
+                  gap: 10,
+                }}
+              >
+                <div style={{ display: 'flex', flexDirection: 'column', gap: 2 }}>
+                  <button
+                    type="button"
+                    className="btn btn-sm btn-ghost"
+                    style={{ padding: '2px 8px', fontSize: 11 }}
+                    disabled={i === 0}
+                    onClick={() => moveCategory(cat.id, -1)}
+                    aria-label="Move up"
+                  >
+                    ↑
+                  </button>
+                  <button
+                    type="button"
+                    className="btn btn-sm btn-ghost"
+                    style={{ padding: '2px 8px', fontSize: 11 }}
+                    disabled={i === categories.length - 1}
+                    onClick={() => moveCategory(cat.id, +1)}
+                    aria-label="Move down"
+                  >
+                    ↓
+                  </button>
+                </div>
+
+                <div style={{ flex: 1, minWidth: 0 }}>
+                  <input
+                    value={cat.name}
+                    onChange={(e) =>
+                      updateCategory(cat.id, { name: e.target.value })
+                    }
+                    className="input"
+                    style={{
+                      background: 'var(--paper-mist)',
+                      fontFamily: 'var(--font-display)',
+                      fontSize: 16,
+                      fontWeight: 500,
+                      letterSpacing: '-0.01em',
+                      padding: '8px 12px',
+                    }}
+                    aria-label={`Category ${i + 1} name`}
+                  />
+                  <span
+                    style={{
+                      display: 'block',
+                      fontFamily: 'var(--font-mono)',
+                      fontSize: 10,
+                      color: 'var(--ink-faint)',
+                      letterSpacing: '0.08em',
+                      marginTop: 4,
+                      textTransform: 'uppercase',
+                    }}
+                  >
+                    {count} dish{count === 1 ? '' : 'es'} &middot; slug: {cat.id}
+                  </span>
+                </div>
+
+                <button
+                  type="button"
+                  className="btn btn-sm btn-danger"
+                  onClick={() => handleDeleteCategory(cat)}
+                  aria-label={`Delete ${cat.name}`}
+                >
+                  ×
+                </button>
+              </div>
+            );
+          })}
+        </div>
+      </section>
+
+      {/* ─── Dish editor ─────────────────────────────────── */}
       <section className="admin-card">
         <div
           style={{
@@ -609,7 +791,11 @@ function MenuEditor() {
               {(c.menu.items || []).filter((i) => i.available).length} available
             </p>
           </div>
-          <button type="button" onClick={addNew} className="btn btn-ember btn-arrow">
+          <button
+            type="button"
+            onClick={() => addNew()}
+            className="btn btn-ember btn-arrow"
+          >
             Add a dish
           </button>
         </div>
@@ -618,38 +804,56 @@ function MenuEditor() {
           const list = grouped.get(cat.id) || [];
           return (
             <div key={cat.id} style={{ marginTop: 24 }}>
-              <h3
+              <div
                 style={{
-                  fontFamily: 'var(--font-display)',
-                  fontSize: 20,
-                  fontWeight: 500,
-                  letterSpacing: '-0.015em',
-                  color: 'var(--ink)',
+                  display: 'flex',
+                  justifyContent: 'space-between',
+                  alignItems: 'baseline',
+                  gap: 12,
                   marginBottom: 12,
+                  flexWrap: 'wrap',
                 }}
               >
-                <em
+                <h3
                   style={{
-                    color: 'var(--ember-deep)',
-                    fontStyle: 'italic',
-                    fontWeight: 380,
+                    fontFamily: 'var(--font-display)',
+                    fontSize: 20,
+                    fontWeight: 500,
+                    letterSpacing: '-0.015em',
+                    color: 'var(--ink)',
                   }}
                 >
-                  {cat.name}
-                </em>
-                <span
-                  style={{
-                    fontFamily: 'var(--font-mono)',
-                    fontSize: 11,
-                    color: 'var(--ink-faint)',
-                    marginLeft: 10,
-                    letterSpacing: '0.1em',
-                    textTransform: 'uppercase',
-                  }}
+                  <em
+                    style={{
+                      color: 'var(--ember-deep)',
+                      fontStyle: 'italic',
+                      fontWeight: 380,
+                    }}
+                  >
+                    {cat.name}
+                  </em>
+                  <span
+                    style={{
+                      fontFamily: 'var(--font-mono)',
+                      fontSize: 11,
+                      color: 'var(--ink-faint)',
+                      marginLeft: 10,
+                      letterSpacing: '0.1em',
+                      textTransform: 'uppercase',
+                    }}
+                  >
+                    {list.length} items
+                  </span>
+                </h3>
+
+                <button
+                  type="button"
+                  onClick={() => addNew(cat.id)}
+                  className="btn btn-sm btn-ghost btn-arrow"
                 >
-                  {list.length} items
-                </span>
-              </h3>
+                  Add to {cat.name}
+                </button>
+              </div>
 
               {list.length === 0 && (
                 <p
@@ -714,11 +918,26 @@ function DishEditorRow({
           )}
         </div>
         <div className="admin-dish-info">
-          <strong
-            dangerouslySetInnerHTML={{
-              __html: item.name + (item.signature ? ' ★' : ''),
-            }}
-          />
+          <strong>
+            <span dangerouslySetInnerHTML={{ __html: item.name }} />
+            {item.signature && (
+              <span
+                style={{
+                  marginLeft: 8,
+                  fontFamily: 'var(--font-mono)',
+                  fontSize: 9,
+                  letterSpacing: '0.15em',
+                  color: 'var(--paper-mist)',
+                  padding: '2px 8px',
+                  borderRadius: 99,
+                  background: 'var(--teal-deep)',
+                  verticalAlign: 'middle',
+                }}
+              >
+                SIGNATURE
+              </span>
+            )}
+          </strong>
           <span className="desc">{item.description || 'No description.'}</span>
           <span className="meta">
             {currency} {item.price} · {item.ingredients?.length || 0} ingredients · {item.extras?.length || 0} extras
@@ -994,8 +1213,8 @@ function AnalyticsPanel() {
                         width: '100%',
                         borderRadius: '10px 10px 0 0',
                         background: peak
-                          ? 'linear-gradient(180deg, #E86F4E 0%, #B13D2A 100%)'
-                          : 'linear-gradient(180deg, rgba(232,111,78,0.55), rgba(232,111,78,0.22))',
+                          ? 'linear-gradient(180deg, #D25A35 0%, #942A18 100%)'
+                          : 'linear-gradient(180deg, rgba(210,90,53,0.55), rgba(210,90,53,0.22))',
                         height: `${h}%`,
                         transition: `height 1s ${i * 0.07}s var(--ease-out)`,
                         boxShadow: peak ? 'var(--glow-ember)' : 'none',
@@ -1077,7 +1296,7 @@ function AnalyticsPanel() {
                         height: '100%',
                         width: `${(i.revenue / maxItemRev) * 100}%`,
                         background:
-                          'linear-gradient(90deg, #E86F4E, #B13D2A)',
+                          'linear-gradient(90deg, #D25A35, #942A18)',
                         transition: `width 1s ${idx * 0.08}s var(--ease-out)`,
                       }}
                     />

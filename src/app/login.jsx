@@ -86,7 +86,7 @@ export default function Login() {
               <code
                 style={{
                   fontFamily: 'var(--font-mono)',
-                  background: 'rgba(232,111,78,0.12)',
+                  background: 'rgba(210,90,53,0.14)',
                   padding: '1px 6px',
                   borderRadius: 4,
                 }}

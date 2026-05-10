@@ -5,27 +5,36 @@
 
 :root {
   /* ─── Palette — paper, ink, ember ─── */
-  --paper:       #F5EFE3;
-  --paper-soft:  #EFE6D4;
-  --paper-warm:  #ECE0C8;
-  --paper-mist:  #FFFBF1;
+  --paper:       #F2E9D5;
+  --paper-soft:  #EADFC4;
+  --paper-warm:  #E4D6B4;
+  --paper-mist:  #FCF7ED;
 
-  --ink:         #1C1814;
-  --ink-soft:    #3A3227;
-  --ink-mid:     #6B5E4E;
-  --ink-faint:   #8A7E6A;
+  --ink:         #1E1812;
+  --ink-soft:    #40362A;
+  --ink-mid:     #6B5D49;
+  --ink-faint:   #8F8168;
 
-  --rule:        rgba(28, 24, 20, 0.10);
-  --rule-soft:   rgba(28, 24, 20, 0.06);
-  --rule-strong: rgba(28, 24, 20, 0.18);
+  --rule:        rgba(30, 24, 18, 0.10);
+  --rule-soft:   rgba(30, 24, 18, 0.06);
+  --rule-strong: rgba(30, 24, 18, 0.18);
 
-  --ember:       #E86F4E;
-  --ember-deep:  #B13D2A;
-  --ember-glow:  rgba(232, 111, 78, 0.22);
-  --ember-tint:  rgba(232, 111, 78, 0.10);
+  /* Terracotta/saffron — richer, a touch less pink than before */
+  --ember:       #D25A35;
+  --ember-deep:  #942A18;
+  --ember-glow:  rgba(210, 90, 53, 0.24);
+  --ember-tint:  rgba(210, 90, 53, 0.10);
+
+  /* Zellige teal — a Moroccan tile complement, used sparingly
+     (signature chips, small accents) so the page still reads warm. */
+  --teal:        #2F6F5C;
+  --teal-deep:   #1E4D3F;
+  --teal-tint:   rgba(47, 111, 92, 0.12);
 
   --sage:        #6B8E5A;
   --sage-tint:   rgba(107, 142, 90, 0.14);
+  --saffron:     #C68018;
+  --saffron-tint: rgba(198, 128, 24, 0.14);
   --marigold:    #D4932E;
   --plum:        #6B3D5C;
 
@@ -39,7 +48,7 @@
   --lift-2: 0 2px 4px rgba(28,24,20,0.04), 0 8px 24px rgba(28,24,20,0.06);
   --lift-3: 0 4px 8px rgba(28,24,20,0.06), 0 20px 50px rgba(28,24,20,0.10);
   --lift-4: 0 8px 16px rgba(28,24,20,0.08), 0 32px 80px rgba(28,24,20,0.14);
-  --glow-ember: 0 12px 40px -8px rgba(232,111,78,0.55);
+  --glow-ember: 0 12px 40px -8px rgba(210,90,53,0.55);
 
   /* ─── Geometry ─── */
   --r-sm: 10px;
@@ -305,8 +314,10 @@ body {
   font-weight: 500;
   letter-spacing: 0.05em;
 }
-.badge-ember  { background: var(--ember-tint); color: var(--ember-deep); border: 1px solid rgba(232,111,78,0.22); }
+.badge-ember  { background: var(--ember-tint); color: var(--ember-deep); border: 1px solid rgba(210,90,53,0.22); }
 .badge-sage   { background: var(--sage-tint);  color: var(--sage);       border: 1px solid rgba(107,142,90,0.28); }
+.badge-teal   { background: var(--teal-tint);  color: var(--teal-deep);  border: 1px solid rgba(47,111,92,0.26); }
+.badge-saffron{ background: var(--saffron-tint); color: var(--saffron);  border: 1px solid rgba(198,128,24,0.24); }
 .badge-ink    { background: var(--ink);        color: var(--paper-mist); }
 .badge-soft   { background: var(--paper-soft); color: var(--ink-mid);    border: 1px solid var(--rule); }
 
@@ -454,14 +465,14 @@ body {
   align-items: center;
   padding: 0 var(--page-gutter);
   gap: 32px;
-  background: rgba(245, 239, 227, 0.78);
+  background: rgba(242, 233, 213, 0.78);
   backdrop-filter: saturate(1.4) blur(16px);
   -webkit-backdrop-filter: saturate(1.4) blur(16px);
   border-bottom: 1px solid transparent;
   transition: background 0.3s, border-color 0.3s;
 }
 .nav.scrolled {
-  background: rgba(245, 239, 227, 0.92);
+  background: rgba(242, 233, 213, 0.94);
   border-color: var(--rule);
 }
 .nav-brand {
@@ -1257,7 +1268,7 @@ body {
   padding: 6px 14px;
   border-radius: 99px;
   background: var(--ember-tint);
-  border: 1px solid rgba(232,111,78,0.25);
+  border: 1px solid rgba(210,90,53,0.26);
   color: var(--ember-deep);
   font-family: var(--font-mono);
   font-size: 11px;
@@ -1724,11 +1735,11 @@ body {
   top: 14px;
   left: 14px;
   padding: 4px 12px;
-  background: var(--paper-mist);
+  background: var(--teal-deep);
   border-radius: 99px;
   font-family: var(--font-mono);
   font-size: 10px;
-  color: var(--ember-deep);
+  color: var(--paper-mist);
   letter-spacing: 0.1em;
   text-transform: uppercase;
   box-shadow: var(--lift-1);
@@ -2013,11 +2024,10 @@ body {
   font-family: var(--font-mono);
   font-size: 9px;
   letter-spacing: 0.15em;
-  color: var(--ember-deep);
+  color: var(--paper-mist);
   padding: 3px 8px;
   border-radius: 99px;
-  background: var(--ember-tint);
-  border: 1px solid rgba(232,111,78,0.22);
+  background: var(--teal-deep);
   vertical-align: middle;
 }
 .menu-dish-price {
@@ -2248,7 +2258,7 @@ body {
 }
 .toast-error {
   background: var(--ember-deep);
-  border-color: rgba(232,111,78,0.4);
+  border-color: rgba(210,90,53,0.42);
 }
 @keyframes toastIn {
   from { opacity: 0; transform: translateY(14px) scale(0.95); }
@@ -2328,7 +2338,7 @@ body {
 }
 .login-form .note {
   background: var(--ember-tint);
-  border: 1px solid rgba(232,111,78,0.25);
+  border: 1px solid rgba(210,90,53,0.26);
   border-radius: 12px;
   padding: 12px 14px;
   font-size: 12px;
@@ -2627,6 +2637,6 @@ body {
 .btn.btn-danger {
   --bg: transparent;
   --fg: var(--ember-deep);
-  border-color: rgba(232,111,78,0.35);
+  border-color: rgba(210,90,53,0.36);
 }
 .btn.btn-danger:hover { --bg: var(--ember-tint); }

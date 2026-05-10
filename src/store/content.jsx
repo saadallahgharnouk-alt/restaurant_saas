@@ -28,6 +28,15 @@ const ContentContext = createContext(null);
 /* deep clone that works for our JSON-shaped content */
 const clone = (o) => JSON.parse(JSON.stringify(o));
 
+/* URL-safe slug for category ids */
+const slugify = (s) =>
+  String(s || '')
+    .toLowerCase()
+    .normalize('NFD').replace(/[\u0300-\u036f]/g, '')
+    .replace(/[^a-z0-9]+/g, '-')
+    .replace(/^-+|-+$/g, '')
+    .slice(0, 40) || `cat-${Date.now()}`;
+
 /* merge persisted state on top of defaults — keeps forward compat
    if we add new fields to DEFAULT_CONTENT later */
 function hydrate(saved) {
@@ -132,6 +141,72 @@ export function ContentProvider({ children }) {
     });
   }, []);
 
+  /* ── Categories ──────────────────────────── */
+
+  const addCategory = useCallback((name) => {
+    const trimmed = (name || '').trim();
+    if (!trimmed) return;
+    setContent((prev) => {
+      const next = clone(prev);
+      const slug = slugify(trimmed);
+      const existing = (next.menu.categories || []).map((c) => c.id);
+      // If the slug already exists, append a numeric suffix.
+      let id = slug, n = 2;
+      while (existing.includes(id)) id = `${slug}-${n++}`;
+      const maxOrder = (next.menu.categories || [])
+        .reduce((m, c) => Math.max(m, c.order || 0), 0);
+      next.menu.categories = [
+        ...(next.menu.categories || []),
+        { id, name: trimmed, order: maxOrder + 1 },
+      ];
+      return next;
+    });
+  }, []);
+
+  const updateCategory = useCallback((id, patch) => {
+    setContent((prev) => {
+      const next = clone(prev);
+      next.menu.categories = (next.menu.categories || []).map((c) =>
+        c.id === id ? { ...c, ...patch } : c
+      );
+      return next;
+    });
+  }, []);
+
+  const moveCategory = useCallback((id, delta) => {
+    setContent((prev) => {
+      const next = clone(prev);
+      const list = (next.menu.categories || [])
+        .slice()
+        .sort((a, b) => (a.order || 0) - (b.order || 0));
+      const idx = list.findIndex((c) => c.id === id);
+      const target = idx + delta;
+      if (idx < 0 || target < 0 || target >= list.length) return prev;
+      // Swap orders
+      [list[idx], list[target]] = [list[target], list[idx]];
+      list.forEach((c, i) => (c.order = i + 1));
+      next.menu.categories = list;
+      return next;
+    });
+  }, []);
+
+  const deleteCategory = useCallback((id, fallbackId = null) => {
+    setContent((prev) => {
+      const next = clone(prev);
+      const remaining = (next.menu.categories || []).filter((c) => c.id !== id);
+      if (remaining.length === 0) return prev; // never leave zero categories
+      const moveTo =
+        fallbackId && remaining.some((c) => c.id === fallbackId)
+          ? fallbackId
+          : remaining[0].id;
+      next.menu.categories = remaining.map((c, i) => ({ ...c, order: i + 1 }));
+      next.menu.items = (next.menu.items || []).map((it) =>
+        it.category === id ? { ...it, category: moveTo } : it
+      );
+      return next;
+    });
+  }, []);
+
   const addGalleryImage = useCallback((dataUrl) => {
     setContent((prev) => {
       const next = clone(prev);
@@ -159,6 +234,10 @@ export function ContentProvider({ children }) {
       addMenuItem,
       updateMenuItem,
       deleteMenuItem,
+      addCategory,
+      updateCategory,
+      moveCategory,
+      deleteCategory,
       addGalleryImage,
       removeGalleryImage,
       resetAll,
@@ -168,6 +247,10 @@ export function ContentProvider({ children }) {
       addMenuItem,
       updateMenuItem,
       deleteMenuItem,
+      addCategory,
+      updateCategory,
+      moveCategory,
+      deleteCategory,
       addGalleryImage,
       removeGalleryImage,
       resetAll,
