@@ -47,7 +47,7 @@ export default function HeroCanvas({ density = 52, className = '' }) {
       hueShift: rand(-18, 18),
     }));
 
-    const ember = [232, 111, 78]; // coral rgb
+    const ember = [255, 138, 61]; // neon orange rgb
 
     // reduced motion → static render, no rAF
     const prefersReduced =
@@ -100,7 +100,7 @@ export default function HeroCanvas({ density = 52, className = '' }) {
           const d2 = dx * dx + dy * dy;
           if (d2 < 120 * 120) {
             const alpha = (1 - Math.sqrt(d2) / 120) * 0.22;
-            ctx.strokeStyle = `rgba(28,24,20,${alpha.toFixed(3)})`;
+            ctx.strokeStyle = `rgba(255,255,255,${(alpha * 0.6).toFixed(3)})`;
             ctx.beginPath();
             ctx.moveTo(a.x, a.y);
             ctx.lineTo(b.x, b.y);

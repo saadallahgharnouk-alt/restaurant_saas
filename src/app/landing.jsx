@@ -10,112 +10,115 @@ import {
 } from '../components/primitives';
 
 /* ───────────────────────────────────────────────────────────────
-   Landing page — the calm restaurant OS.
-   Editorial Fraunces hero, interactive canvas, tilt food card,
-   feature rows, testimonial grid, CTA band.
+   Landing page — dark, food-forward, neon title accent.
+   Three pages only: Home · Menu · Manager.
    ─────────────────────────────────────────────────────────────── */
 
+// Moody, professional food photography
 const HERO_IMAGE =
-  'https://images.unsplash.com/photo-1504674900247-0877df9cc836?auto=format&fit=crop&w=1200&q=80';
+  'https://images.unsplash.com/photo-1544025162-d76694265947?auto=format&fit=crop&w=1400&q=80';
+// Alt (steak, very dark): photo-1544025162-d76694265947
+// Current pick: dramatic meat shot on dark board
 
 const FEATURE_IMAGES = {
-  qr: 'https://images.unsplash.com/photo-1555396273-367ea4eb4db5?auto=format&fit=crop&w=1200&q=80',
-  orders:
-    'https://images.unsplash.com/photo-1559339352-11d035aa65de?auto=format&fit=crop&w=1200&q=80',
-  analytics:
-    'https://images.unsplash.com/photo-1551218808-94e220e084d2?auto=format&fit=crop&w=1200&q=80',
+  menu:
+    'https://images.unsplash.com/photo-1559339352-11d035aa65de?auto=format&fit=crop&w=1400&q=80',
+  manager:
+    'https://images.unsplash.com/photo-1517248135467-4c7edcad34c4?auto=format&fit=crop&w=1400&q=80',
+  experience:
+    'https://images.unsplash.com/photo-1414235077428-338989a2e8c0?auto=format&fit=crop&w=1400&q=80',
 };
 
 const MARQUEE = [
-  'Botanique · Paris',
-  'Oyama Ramen · Tokyo',
-  'Cafe Tartine · SF',
-  'La Nuit Bleue · Lyon',
-  'Marzano · Milan',
-  'Maison Lune · NYC',
-  'Fika Collective · Stockholm',
-  'Sora · Melbourne',
+  'Fire & Smoke',
+  'House Ramen',
+  'Flame-Grilled',
+  'Signature Burger',
+  'Wood-Fired Pizza',
+  'Sunday Brunch',
+  'Chef\u2019s Tasting',
+  'Late-Night Menu',
 ];
 
 const FEATURES = [
   {
-    eyebrow: 'QR ordering',
+    eyebrow: 'Your digital menu',
     title: (
       <>
-        Guests scan. The menu <em>just opens.</em>
+        A menu that <em>looks</em> as good as it tastes.
       </>
     ),
     body:
-      'Print a QR card per table. No app, no signup, no friction — a warm editorial menu that feels designed for this restaurant, not every restaurant.',
+      'Beautifully styled cards, clean category flow, thumb-friendly. Guests scan a QR, browse your menu, and add to cart — no app, no signup, no friction.',
     bullets: [
-      { strong: 'Table-aware URLs', rest: '— orders hit the kitchen already tagged.' },
-      { strong: 'Print-ready cards', rest: '— bulk export in one click.' },
-      { strong: 'Fully offline demo', rest: '— rehearse before wiring the backend.' },
+      { strong: 'Photography-first', rest: ' layout that makes dishes pop.' },
+      { strong: 'Category filters', rest: ' — Starters, Mains, Sides, Drinks.' },
+      { strong: 'Live pricing', rest: ' — update once, it\u2019s live everywhere.' },
     ],
-    cta: { label: 'Open QR Studio', to: '/qr' },
-    image: FEATURE_IMAGES.qr,
-    overlayTL: { label: 'Average scan', value: '1.2s' },
+    cta: { label: 'Preview a menu', to: '/m/1' },
+    image: FEATURE_IMAGES.menu,
+    overlayTL: { label: 'Avg. scan', value: '1.2s' },
     overlayBR: { label: 'Table', value: '#05' },
   },
   {
-    eyebrow: 'Live service',
+    eyebrow: 'Manager control',
     title: (
       <>
-        From chair to kitchen, <em>without a chit.</em>
+        Your entire service, <em>in one place.</em>
       </>
     ),
     body:
-      'A single flow: cart → send to kitchen → board lights up. No more printer jams, lost orders, or waving a server down. Your team sees what matters, nothing more.',
+      'Watch orders land in real time. Track revenue, top dishes, and service mix from a dashboard designed to be read at a glance — even mid-rush.',
     bullets: [
-      { strong: 'Pending · Cooking · Ready', rest: ' — a kitchen board anyone can read.' },
-      { strong: 'Promo codes', rest: ' — SAVE10 / SAVE20 / WELCOME out of the box.' },
-      { strong: 'Drawer-first UX', rest: ' — optimized for phones and one thumb.' },
+      { strong: 'Live order feed', rest: ' — pending, cooking, ready.' },
+      { strong: 'Revenue & top items', rest: ' — today, this week, this month.' },
+      { strong: 'Menu editor', rest: ' — update dishes, prices, photos in seconds.' },
     ],
-    cta: { label: 'See the board', to: '/kitchen' },
-    image: FEATURE_IMAGES.orders,
+    cta: { label: 'Open Manager', to: '/dashboard' },
+    image: FEATURE_IMAGES.manager,
     flip: true,
     overlayTL: { label: 'Ticket', value: '#847' },
-    overlayBR: { label: 'Ready in', value: '4:20' },
+    overlayBR: { label: 'Tonight', value: '$1,284' },
   },
   {
-    eyebrow: 'Quiet analytics',
+    eyebrow: 'The experience',
     title: (
       <>
-        Numbers that <em>read like a story.</em>
+        Guests <em>feel</em> the difference.
       </>
     ),
     body:
-      "Revenue by day, top dishes, category mix. No dashboards shouting at you — just what this Tuesday did, and what tomorrow's prep should look like.",
+      'Less waiting, less pointing, more enjoying. Your team spends time on hospitality — not chasing tables for orders. Your restaurant just feels more modern.',
     bullets: [
-      { strong: 'Live figures', rest: ' — revenue, orders, average ticket, uptime.' },
-      { strong: 'Top-item leaderboard', rest: ' — with a calm progress bar.' },
-      { strong: 'Category mix', rest: ' — served as a segmented ribbon.' },
+      { strong: 'No staff bottleneck', rest: ' — guests order when they\u2019re ready.' },
+      { strong: 'Fewer order errors', rest: ' — exactly what they tapped, arrives.' },
+      { strong: 'Table turnover up', rest: ' — fewer minutes waiting to order.' },
     ],
-    cta: { label: 'View analytics', to: '/analytics' },
-    image: FEATURE_IMAGES.analytics,
-    overlayTL: { label: 'This week', value: '$12,450' },
-    overlayBR: { label: 'vs last', value: '+12%' },
+    cta: { label: 'See the menu', to: '/menu' },
+    image: FEATURE_IMAGES.experience,
+    overlayTL: { label: 'Table turn', value: '+18%' },
+    overlayBR: { label: 'Error rate', value: '−62%' },
   },
 ];
 
 const QUOTES = [
   {
     quote:
-      'We rolled this out on a Tuesday. By Friday service, we were taking 30% of orders straight from the table.',
+      'Opened on a Tuesday. By Friday service, a third of our orders came straight from the table.',
     name: 'Mina R.',
     role: 'Owner · Botanique, Paris',
     initial: 'M',
   },
   {
     quote:
-      'The scan page feels like our restaurant — not a generic white-label menu. That matters.',
+      'The menu looks like our restaurant — not a generic white-label. My photos finally get the stage they deserve.',
     name: 'Takeshi O.',
     role: 'Head chef · Oyama, Tokyo',
     initial: 'T',
   },
   {
     quote:
-      'My kitchen runs quieter now. We stopped printing chits. Nobody misses them.',
+      'My kitchen runs quieter. Orders just show up where they should. We stopped printing chits.',
     name: 'Jade P.',
     role: 'Operations · Maison Lune',
     initial: 'J',
@@ -130,35 +133,37 @@ export default function Landing() {
         <div className="landing-hero-grid">
           {/* Left — editorial headline */}
           <Reveal as="div" stagger className="stagger">
-            <span className="eyebrow">The calm restaurant OS</span>
+            <span className="eyebrow">Modern restaurant platform</span>
 
             <h1 className="landing-hero-title">
-              Taste,&nbsp;served
+              The menu.
               <br />
-              <em>with intention.</em>
+              The service.
+              <br />
+              <em>Elevated.</em>
             </h1>
 
             <p className="landing-hero-lead">
-              RestauHub is a warm, unhurried operating system for modern
-              restaurants — QR menus, live orders, a kitchen board and
-              analytics, all quietly in one place.
+              A digital menu, a manager dashboard, and a guest experience
+              that feels designed for your restaurant — not every restaurant.
+              Dark, modern, beautifully built.
             </p>
 
             <div className="landing-hero-cta">
               <MagneticButton
                 as={Link}
-                to="/qr"
+                to="/menu"
                 className="btn btn-ember btn-lg btn-arrow"
               >
-                Generate a QR menu
+                View the menu
               </MagneticButton>
               <MagneticButton
                 as={Link}
-                to="/m/1"
+                to="/dashboard"
                 className="btn btn-ghost btn-lg"
                 strength={8}
               >
-                See a live menu
+                Open Manager
               </MagneticButton>
             </div>
 
@@ -179,22 +184,22 @@ export default function Landing() {
                 <strong>
                   <AnimatedNumber value={99.9} decimals={1} suffix="%" />
                 </strong>
-                <span>Uptime · 30 d</span>
+                <span>Uptime</span>
               </div>
             </div>
           </Reveal>
 
-          {/* Right — tilt photo + chips + canvas */}
+          {/* Right — tilt food photo + chips + canvas */}
           <Reveal>
             <div className="landing-hero-visual">
               <div className="landing-hero-canvas">
-                <HeroCanvas density={52} />
+                <HeroCanvas density={40} />
               </div>
 
               <TiltCard className="landing-hero-photo" max={9} glare>
                 <img
                   src={HERO_IMAGE}
-                  alt="A plated dish, photographed from above"
+                  alt="A plated dish under dramatic light"
                   loading="eager"
                 />
               </TiltCard>
@@ -222,7 +227,7 @@ export default function Landing() {
         </div>
       </section>
 
-      {/* ─── Marquee ─────────────────────────────────────────── */}
+      {/* ─── Marquee of dish concepts ────────────────────────── */}
       <Marquee items={MARQUEE} />
 
       {/* ─── Feature rows ────────────────────────────────────── */}
@@ -237,9 +242,9 @@ export default function Landing() {
       {/* ─── Testimonials ────────────────────────────────────── */}
       <section className="quotes-section">
         <Reveal>
-          <span className="eyebrow">Loved by calm operators</span>
-          <h2 className="page-title" style={{ marginTop: 10, maxWidth: 20 + 'ch' }}>
-            Designed for the <em>dinner rush.</em>
+          <span className="eyebrow">Loved by modern operators</span>
+          <h2 className="page-title" style={{ marginTop: 12, maxWidth: '20ch' }}>
+            Built for the <em>dinner rush.</em>
           </h2>
         </Reveal>
 
@@ -251,7 +256,7 @@ export default function Landing() {
               <div className="who">
                 <div className="avatar">{q.initial}</div>
                 <div>
-                  <div style={{ fontWeight: 600, color: 'var(--ink)' }}>{q.name}</div>
+                  <div style={{ fontWeight: 600, color: 'var(--fg)' }}>{q.name}</div>
                   <small>{q.role}</small>
                 </div>
               </div>
@@ -265,15 +270,13 @@ export default function Landing() {
         <Reveal>
           <div className="cta-inner">
             <div>
-              <span className="eyebrow" style={{ color: 'rgba(245,239,227,0.65)' }}>
-                Start tonight
-              </span>
+              <span className="eyebrow">Start tonight</span>
               <h2>
-                Your next <em>service</em>,<br />made quieter.
+                Your next <em>service</em>,<br />made modern.
               </h2>
               <p>
-                No credit card, no setup call. Open a workspace, print a QR,
-                start taking orders. Your kitchen will notice.
+                No credit card, no setup call. Open a workspace, share the
+                menu link, start taking orders. Your guests will notice first.
               </p>
             </div>
 
@@ -283,22 +286,22 @@ export default function Landing() {
                 to="/dashboard"
                 className="btn btn-ember btn-lg btn-arrow"
               >
-                Open the dashboard
+                Open Manager
               </MagneticButton>
               <MagneticButton
                 as={Link}
-                to="/qr"
+                to="/menu"
                 className="btn btn-ghost-ink btn-lg"
                 strength={8}
               >
-                Generate a QR menu
+                View the menu
               </MagneticButton>
               <div
                 style={{
                   fontFamily: 'var(--font-mono)',
                   fontSize: 11,
                   letterSpacing: '0.12em',
-                  color: 'rgba(245,239,227,0.55)',
+                  color: 'var(--fg-faint)',
                   marginTop: 10,
                   textTransform: 'uppercase',
                 }}
@@ -380,7 +383,7 @@ function FeatureRow({
                 fontFamily: 'var(--font-mono)',
                 fontSize: 10,
                 letterSpacing: '0.12em',
-                color: 'var(--ink-faint)',
+                color: 'var(--fg-faint)',
                 textTransform: 'uppercase',
               }}
             >
@@ -391,7 +394,7 @@ function FeatureRow({
                 fontFamily: 'var(--font-display)',
                 fontSize: 18,
                 fontWeight: 500,
-                color: 'var(--ink)',
+                color: 'var(--fg)',
                 letterSpacing: '-0.02em',
               }}
             >
@@ -407,7 +410,7 @@ function FeatureRow({
                 fontFamily: 'var(--font-mono)',
                 fontSize: 10,
                 letterSpacing: '0.12em',
-                color: 'var(--ink-faint)',
+                color: 'var(--fg-faint)',
                 textTransform: 'uppercase',
               }}
             >
@@ -418,8 +421,9 @@ function FeatureRow({
                 fontFamily: 'var(--font-display)',
                 fontSize: 18,
                 fontWeight: 500,
-                color: 'var(--ember-deep)',
+                color: 'var(--neon)',
                 letterSpacing: '-0.02em',
+                textShadow: '0 0 14px rgba(255,107,31,0.35)',
               }}
             >
               {overlayBR.value}
