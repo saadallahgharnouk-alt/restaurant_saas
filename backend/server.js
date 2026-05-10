@@ -15,15 +15,15 @@ const pool = new Pool({
 
 pool.connect((err, client, release) => {
   if (err) {
-    console.error('Database connection failed ❌', err.stack);
+    console.error('Database connection failed X', err.stack);
   } else {
-    console.log('Connected to PostgreSQL ✅');
+    console.log('Connected to PostgreSQL');
   }
   if (client) release();
 });
 
 app.get('/', (req, res) => {
-  res.send('RestauHub backend running 🚀');
+  res.send('RestauHub backend running');
 });
 
 app.get('/api/test', async (req, res) => {
@@ -45,41 +45,65 @@ app.get('/api/restaurants', async (req, res) => {
   }
 });
 
-// --- NEW ROUTE: Get menu for ONE specific restaurant ---
+// Get a single restaurant by id (used by the public /m/:id scan page
+// so the customer sees the restaurant name / branding).
+app.get('/api/restaurants/:id', async (req, res) => {
+  try {
+    const { id } = req.params;
+    const result = await pool.query(
+      'SELECT * FROM "Restaurants" WHERE id = $1',
+      [id]
+    );
+    if (result.rows.length === 0) {
+      return res.status(404).json({ error: 'Restaurant not found' });
+    }
+    res.json(result.rows[0]);
+  } catch (err) {
+    console.error('Restaurant fetch error:', err.message);
+    res.status(500).json({ error: err.message });
+  }
+});
+
 app.get('/api/menu/:restaurantId', async (req, res) => {
   try {
-    // We grab the ID from the URL React asked for
-    const { restaurantId } = req.params; 
-    
-    // The $1 is a security measure to prevent hackers from messing with the database
+    const { restaurantId } = req.params;
     const result = await pool.query(
-      'SELECT * FROM "Menu_Items" WHERE restaurant_id = $1', 
+      'SELECT * FROM "Menu_Items" WHERE restaurant_id = $1',
       [restaurantId]
     );
-    
-    res.json(result.rows); 
+    res.json(result.rows);
   } catch (err) {
-    console.error("Menu fetch error:", err.message);
+    console.error('Menu fetch error:', err.message);
     res.status(500).json({ error: 'Server Error' });
   }
 });
 
-// --- NEW ROUTE: Submit a new order ---
+// List all orders (used by the admin dashboard).
+app.get('/api/orders', async (req, res) => {
+  try {
+    const result = await pool.query(
+      'SELECT * FROM "Orders" ORDER BY id DESC LIMIT 100'
+    );
+    res.json(result.rows);
+  } catch (err) {
+    console.error('Orders fetch error:', err.message);
+    res.status(500).json({ error: 'Server Error' });
+  }
+});
+
 app.post('/api/orders', async (req, res) => {
   try {
-    // We grab the cart data that React sent us in the "body" of the request
-    const { restaurant_id, items, total_price } = req.body;
+    const { restaurant_id, items, total_price, table_number } = req.body;
 
-    // Insert it into the Orders table! 
     const result = await pool.query(
-      `INSERT INTO "Orders" (restaurant_id, items, total_price, status) 
-       VALUES ($1, $2, $3, $4) RETURNING *`,
-      [restaurant_id, JSON.stringify(items), total_price, 'Pending']
+      `INSERT INTO "Orders" (restaurant_id, items, total_price, status, table_number)
+       VALUES ($1, $2, $3, $4, $5) RETURNING *`,
+      [restaurant_id, JSON.stringify(items), total_price, 'Pending', table_number || null]
     );
 
     res.json({ success: true, message: 'Order sent to kitchen!', order: result.rows[0] });
   } catch (err) {
-    console.error("Order submission error:", err.message);
+    console.error('Order submission error:', err.message);
     res.status(500).json({ error: 'Failed to submit order' });
   }
 });
