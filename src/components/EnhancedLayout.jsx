@@ -1,70 +1,91 @@
-import React, { useState, useEffect } from 'react';
+import React, { useEffect, useState } from 'react';
 import { Link, useLocation } from 'react-router-dom';
+import { GrainOverlay, MagneticButton } from './primitives';
+
+/* ───────────────────────────────────────────────────────────────
+   EnhancedLayout — the admin chrome (top nav + footer + grain).
+   Anthropic/Linear inspired: cream paper, sticky nav that subtly
+   densifies on scroll, pill links, magnetic CTA, mobile drawer.
+   ─────────────────────────────────────────────────────────────── */
 
 const NAV = [
-  { path: '/',             label: 'Dashboard',   icon: '◉' },
-  { path: '/restaurants',  label: 'Restaurants', icon: '◈' },
-  { path: '/menu',         label: 'Menu',        icon: '◍' },
-  { path: '/kitchen',      label: 'Kitchen',     icon: '✦' },
-  { path: '/order',        label: 'Orders',      icon: '⬢' },
-  { path: '/qr',           label: 'QR Codes',    icon: '▦' },
-  { path: '/analytics',    label: 'Analytics',   icon: '◎' },
+  { to: '/',            label: 'Home'        },
+  { to: '/dashboard',   label: 'Dashboard'   },
+  { to: '/menu',        label: 'Menu'        },
+  { to: '/qr',          label: 'QR Studio'   },
+  { to: '/kitchen',     label: 'Kitchen'     },
+  { to: '/order',       label: 'Orders'      },
+  { to: '/analytics',   label: 'Analytics'   },
+  { to: '/restaurants', label: 'Venues'      },
 ];
 
+function isActive(pathname, to) {
+  if (to === '/') return pathname === '/';
+  return pathname === to || pathname.startsWith(to + '/');
+}
+
 export default function EnhancedLayout({ children }) {
-  const location = useLocation();
-  const [open, setOpen] = useState(false);
+  const { pathname } = useLocation();
   const [scrolled, setScrolled] = useState(false);
+  const [open, setOpen]         = useState(false);
 
   useEffect(() => {
-    const onScroll = () => setScrolled(window.scrollY > 8);
+    const onScroll = () => setScrolled(window.scrollY > 12);
     window.addEventListener('scroll', onScroll, { passive: true });
+    onScroll();
     return () => window.removeEventListener('scroll', onScroll);
   }, []);
 
-  useEffect(() => { setOpen(false); }, [location.pathname]);
+  // Close mobile menu when route changes.
+  useEffect(() => { setOpen(false); }, [pathname]);
 
   return (
     <div className="app">
-      <nav className={`navbar ${scrolled ? 'scrolled' : ''}`}>
-        <Link to="/" className="nav-brand" onClick={() => setOpen(false)}>
-          <img src="/logo-mark.svg" alt="" width="28" height="28" style={{ filter: 'drop-shadow(0 0 8px var(--accent-glow))' }} />
-          <div className="brand-text">
-            <span className="brand-name">RestauHub</span>
-            <span className="brand-sub">Restaurant OS</span>
-          </div>
+      <GrainOverlay />
+
+      <nav className={`nav ${scrolled ? 'scrolled' : ''}`}>
+        <Link to="/" className="nav-brand" aria-label="RestauHub home">
+          <img src="/logo-mark.svg" alt="" width="36" height="36" />
+          <span className="nav-brand-text">
+            <span className="nav-brand-name">
+              restau<em>hub</em>
+            </span>
+            <span className="nav-brand-sub">Restaurant OS</span>
+          </span>
         </Link>
 
         <div className={`nav-links ${open ? 'open' : ''}`}>
-          {NAV.map(item => {
-            const active = location.pathname === item.path;
-            return (
-              <Link
-                key={item.path}
-                to={item.path}
-                className={`nav-link ${active ? 'active' : ''}`}
-                onClick={() => setOpen(false)}
-              >
-                <span className="nav-icon">{item.icon}</span>
-                <span className="nav-label">{item.label}</span>
-                {active && <span className="nav-dot" />}
-              </Link>
-            );
-          })}
+          {NAV.map((n) => (
+            <Link
+              key={n.to}
+              to={n.to}
+              className={`nav-link ${isActive(pathname, n.to) ? 'active' : ''}`}
+            >
+              {n.label}
+            </Link>
+          ))}
         </div>
 
         <div className="nav-actions">
-          <div className="status-pill">
-            <span className="status-dot" />
-            LIVE
-          </div>
+          <span className="status-dot" aria-label="System status: live">Live</span>
+          <MagneticButton
+            as={Link}
+            to="/qr"
+            className="btn btn-ember btn-sm btn-arrow"
+            strength={8}
+          >
+            New QR
+          </MagneticButton>
           <button
             type="button"
-            aria-label="Toggle navigation"
+            aria-label="Toggle menu"
+            aria-expanded={open}
             className="nav-burger"
-            onClick={() => setOpen(v => !v)}
+            onClick={() => setOpen((v) => !v)}
           >
-            <span /><span /><span />
+            <span />
+            <span />
+            <span />
           </button>
         </div>
       </nav>
@@ -73,19 +94,20 @@ export default function EnhancedLayout({ children }) {
         {children}
       </main>
 
-      <footer style={{
-        borderTop: '1px solid var(--border)',
-        padding: '20px 28px',
-        color: 'var(--text-mid)',
-        fontSize: 12,
-        display: 'flex',
-        justifyContent: 'space-between',
-        flexWrap: 'wrap',
-        gap: 12,
-      }}>
-        <span>© {new Date().getFullYear()} RestauHub · Restaurant OS</span>
-        <span style={{ fontFamily: 'var(--font-mono)', letterSpacing: '0.08em' }}>
-          BUILT WITH REACT · VITE · NODE
+      <footer className="site-footer">
+        <span>
+          <span className="brandline">restau<em>hub</em></span>
+          &nbsp;·&nbsp; built for calm kitchens &nbsp;·&nbsp; © {new Date().getFullYear()}
+        </span>
+        <span
+          style={{
+            fontFamily: 'var(--font-mono)',
+            letterSpacing: '0.12em',
+            textTransform: 'uppercase',
+            fontSize: 11,
+          }}
+        >
+          React &middot; Vite &middot; Node
         </span>
       </footer>
     </div>

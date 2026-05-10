@@ -1,12 +1,13 @@
 import React, { useState, useRef, useEffect } from 'react';
+import { Reveal } from '../../components/primitives';
 
 const CATEGORIES = ['All', 'Mains', 'Sides', 'Desserts', 'Drinks'];
 
 const CAT_COLORS = {
-  Mains:    { bg: 'rgba(99,102,241,0.1)',  color: '#818cf8', border: 'rgba(99,102,241,0.25)' },
-  Sides:    { bg: 'rgba(245,158,11,0.1)', color: '#fbbf24', border: 'rgba(245,158,11,0.25)' },
-  Desserts: { bg: 'rgba(236,72,153,0.1)', color: '#f472b6', border: 'rgba(236,72,153,0.25)' },
-  Drinks:   { bg: 'rgba(34,197,94,0.1)',  color: '#4ade80', border: 'rgba(34,197,94,0.25)' },
+  Mains:    '#B13D2A',
+  Sides:    '#D4932E',
+  Desserts: '#6B3D5C',
+  Drinks:   '#6B8E5A',
 };
 
 const INITIAL_ITEMS = [
@@ -21,11 +22,19 @@ const INITIAL_ITEMS = [
 let nextId = 7;
 
 function Modal({ item, onClose, onSave }) {
-  const [form, setForm] = useState(item || { name: '', category: 'Mains', price: '', available: true, desc: '' });
+  const [form, setForm] = useState(
+    item || {
+      name: '',
+      category: 'Mains',
+      price: '',
+      available: true,
+      desc: '',
+    }
+  );
   const ref = useRef(null);
   useEffect(() => ref.current?.focus(), []);
 
-  const set = (k, v) => setForm(f => ({ ...f, [k]: v }));
+  const set = (k, v) => setForm((f) => ({ ...f, [k]: v }));
   const save = () => {
     if (!form.name.trim() || !form.price) return;
     onSave({ ...form, price: parseFloat(form.price), id: form.id || nextId++ });
@@ -33,23 +42,50 @@ function Modal({ item, onClose, onSave }) {
   };
 
   return (
-    <div className="modal-overlay" onClick={e => e.target === e.currentTarget && onClose()} style={{ display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-      <div className="card" style={{ width: '100%', maxWidth: 480, padding: 28 }}>
-        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 24 }}>
-          <span className="page-tag" style={{ margin: 0 }}>
-            {item ? 'EDIT ITEM' : 'NEW ITEM'}
-          </span>
-          <button className="btn btn-ghost btn-sm" onClick={onClose}>✕</button>
-        </div>
+    <div
+      className="modal-overlay"
+      onClick={(e) => e.target === e.currentTarget && onClose()}
+    >
+      <div className="modal">
+        <button className="modal-close" onClick={onClose} aria-label="Close">
+          ✕
+        </button>
+
+        <span className="eyebrow">
+          {item ? 'Edit item' : 'New item'}
+        </span>
+        <h2
+          style={{
+            fontFamily: 'var(--font-display)',
+            fontSize: 28,
+            fontWeight: 440,
+            letterSpacing: '-0.025em',
+            marginTop: 6,
+            marginBottom: 22,
+            color: 'var(--ink)',
+          }}
+        >
+          {item ? 'Refining a dish' : <>Add a <em style={{ color: 'var(--ember-deep)', fontStyle: 'italic', fontWeight: 380 }}>new</em> dish</>}
+        </h2>
 
         <div style={{ display: 'flex', flexDirection: 'column', gap: 14 }}>
           {[
-            { label: 'NAME', key: 'name', type: 'text', ph: 'e.g. Margherita Pizza', ref },
-            { label: 'DESCRIPTION', key: 'desc', type: 'text', ph: 'Short description…' },
-            { label: 'PRICE ($)', key: 'price', type: 'number', ph: '0.00' },
-          ].map(f => (
+            { label: 'Name', key: 'name', type: 'text', ph: 'e.g. Margherita Pizza', ref },
+            { label: 'Description', key: 'desc', type: 'text', ph: 'Short description…' },
+            { label: 'Price ($)', key: 'price', type: 'number', ph: '0.00' },
+          ].map((f) => (
             <div key={f.key}>
-              <label style={{ fontFamily: 'var(--font-mono)', fontSize: 9, color: 'var(--text-mid)', letterSpacing: '0.12em', display: 'block', marginBottom: 6 }}>
+              <label
+                style={{
+                  fontFamily: 'var(--font-mono)',
+                  fontSize: 10,
+                  color: 'var(--ink-faint)',
+                  letterSpacing: '0.14em',
+                  display: 'block',
+                  marginBottom: 6,
+                  textTransform: 'uppercase',
+                }}
+              >
                 {f.label}
               </label>
               <input
@@ -57,50 +93,95 @@ function Modal({ item, onClose, onSave }) {
                 type={f.type}
                 value={form[f.key]}
                 placeholder={f.ph}
-                onChange={e => set(f.key, e.target.value)}
+                onChange={(e) => set(f.key, e.target.value)}
                 className="input"
-                style={{ width: '100%', background: 'var(--surface2)', border: '1px solid var(--border)', borderRadius: 8, padding: '10px 12px', color: 'var(--text-hi)' }}
               />
             </div>
           ))}
 
           <div>
-            <label style={{ fontFamily: 'var(--font-mono)', fontSize: 9, color: 'var(--text-mid)', letterSpacing: '0.12em', display: 'block', marginBottom: 8 }}>
-              CATEGORY
+            <label
+              style={{
+                fontFamily: 'var(--font-mono)',
+                fontSize: 10,
+                color: 'var(--ink-faint)',
+                letterSpacing: '0.14em',
+                display: 'block',
+                marginBottom: 8,
+                textTransform: 'uppercase',
+              }}
+            >
+              Category
             </label>
             <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap' }}>
-              {CATEGORIES.filter(c => c !== 'All').map(c => {
-                const cc = CAT_COLORS[c];
+              {CATEGORIES.filter((c) => c !== 'All').map((c) => {
                 const active = form.category === c;
                 return (
-                  <button key={c} onClick={() => set('category', c)} className={`btn btn-sm ${active ? 'btn-primary' : 'btn-ghost'}`} style={{
-                    background: active ? cc.bg : 'transparent',
-                    borderColor: active ? cc.border : 'var(--border)',
-                    color: active ? cc.color : 'var(--text-mid)',
-                  }}>{c}</button>
+                  <button
+                    key={c}
+                    onClick={() => set('category', c)}
+                    className={`btn btn-sm ${active ? 'btn-ember' : 'btn-ghost'}`}
+                  >
+                    {c}
+                  </button>
                 );
               })}
             </div>
           </div>
 
-          <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', background: 'var(--surface2)', border: '1px solid var(--border)', borderRadius: 8, padding: '12px 14px' }}>
-            <span style={{ fontSize: 13, color: 'var(--text)' }}>Available to order</span>
-            <button onClick={() => set('available', !form.available)} style={{
-              width: 40, height: 22, borderRadius: 99, border: 'none', cursor: 'pointer',
-              background: form.available ? 'var(--green)' : 'var(--surface)',
-              transition: 'background 0.2s',
-              position: 'relative',
-            }}>
-              <span style={{
-                position: 'absolute', top: 3, left: form.available ? 20 : 3,
-                width: 16, height: 16, borderRadius: '50%', background: '#fff',
-                transition: 'left 0.2s',
-              }} />
+          <div
+            style={{
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'space-between',
+              background: 'var(--paper-soft)',
+              border: '1px solid var(--rule)',
+              borderRadius: 12,
+              padding: '14px 16px',
+            }}
+          >
+            <span style={{ fontSize: 14, color: 'var(--ink-soft)' }}>
+              Available to order
+            </span>
+            <button
+              onClick={() => set('available', !form.available)}
+              style={{
+                width: 42,
+                height: 24,
+                borderRadius: 99,
+                border: 'none',
+                cursor: 'pointer',
+                background: form.available ? 'var(--sage)' : 'var(--rule-strong)',
+                transition: 'background 0.25s',
+                position: 'relative',
+              }}
+            >
+              <span
+                style={{
+                  position: 'absolute',
+                  top: 3,
+                  left: form.available ? 21 : 3,
+                  width: 18,
+                  height: 18,
+                  borderRadius: '50%',
+                  background: 'var(--paper-mist)',
+                  transition: 'left 0.25s var(--ease-out)',
+                  boxShadow: 'var(--lift-1)',
+                }}
+              />
             </button>
           </div>
 
-          <button onClick={save} className="btn btn-primary" style={{ marginTop: 4 }}>
-            {item ? 'Save Changes' : 'Add Item'}
+          <button
+            onClick={save}
+            className="btn btn-ember btn-arrow"
+            style={{
+              marginTop: 8,
+              padding: '14px 20px',
+              justifyContent: 'center',
+            }}
+          >
+            {item ? 'Save changes' : 'Add item'}
           </button>
         </div>
       </div>
@@ -112,96 +193,224 @@ export default function MenuManagement() {
   const [items, setItems]       = useState(INITIAL_ITEMS);
   const [cat, setCat]           = useState('All');
   const [search, setSearch]     = useState('');
-  const [modal, setModal]       = useState(null); // null | 'new' | item
+  const [modal, setModal]       = useState(null);
   const [editItem, setEditItem] = useState(null);
 
-  const filtered = items.filter(i =>
-    (cat === 'All' || i.category === cat) &&
-    (i.name.toLowerCase().includes(search.toLowerCase()) || i.desc.toLowerCase().includes(search.toLowerCase()))
+  const filtered = items.filter(
+    (i) =>
+      (cat === 'All' || i.category === cat) &&
+      (i.name.toLowerCase().includes(search.toLowerCase()) ||
+        i.desc.toLowerCase().includes(search.toLowerCase()))
   );
 
   const save = (item) => {
-    setItems(prev => {
-      const idx = prev.findIndex(i => i.id === item.id);
-      return idx >= 0 ? prev.map((i, n) => n === idx ? item : i) : [...prev, item];
+    setItems((prev) => {
+      const idx = prev.findIndex((i) => i.id === item.id);
+      return idx >= 0
+        ? prev.map((i, n) => (n === idx ? item : i))
+        : [...prev, item];
     });
   };
 
-  const toggle = (id) => setItems(prev => prev.map(i => i.id === id ? { ...i, available: !i.available } : i));
-  const remove = (id) => setItems(prev => prev.filter(i => i.id !== id));
+  const toggle = (id) =>
+    setItems((prev) =>
+      prev.map((i) => (i.id === id ? { ...i, available: !i.available } : i))
+    );
+  const remove = (id) =>
+    setItems((prev) => prev.filter((i) => i.id !== id));
 
   return (
     <div className="page">
-      <div className="page-header" style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start' }}>
+      <Reveal
+        as="div"
+        className="page-header"
+        style={{
+          display: 'flex',
+          justifyContent: 'space-between',
+          alignItems: 'flex-end',
+          gap: 16,
+          flexWrap: 'wrap',
+        }}
+      >
         <div>
-          <span className="page-tag">◍ Menu</span>
-          <h1 className="page-title">Menu Management</h1>
-          <p className="page-sub">{items.length} items · {items.filter(i => i.available).length} available</p>
+          <span className="eyebrow">Menu management</span>
+          <h1 className="page-title">
+            Curate the <em>kitchen&rsquo;s voice</em>.
+          </h1>
+          <p className="page-sub">
+            {items.length} items &middot;{' '}
+            {items.filter((i) => i.available).length} available now
+          </p>
         </div>
-        <button className="btn btn-primary" onClick={() => { setEditItem(null); setModal('new'); }}>+ Add Item</button>
-      </div>
+        <button
+          className="btn btn-ember btn-arrow"
+          onClick={() => {
+            setEditItem(null);
+            setModal('new');
+          }}
+        >
+          Add dish
+        </button>
+      </Reveal>
 
       {/* Filters */}
-      <div className="card" style={{ marginBottom: 24, padding: '16px 20px' }}>
-        <div style={{ display: 'flex', gap: 12, alignItems: 'center', flexWrap: 'wrap' }}>
-          <input
-            className="input"
-            placeholder="Search menu…"
-            value={search}
-            onChange={e => setSearch(e.target.value)}
-            style={{ maxWidth: 240, background: 'var(--surface2)', border: '1px solid var(--border)', borderRadius: 8, padding: '8px 12px', color: 'var(--text-hi)' }}
-          />
-          <div style={{ display: 'flex', gap: 6 }}>
-            {CATEGORIES.map(c => (
-              <button key={c} onClick={() => setCat(c)} className={`btn btn-sm ${cat === c ? 'btn-primary' : 'btn-ghost'}`} style={{
-                fontFamily: 'var(--font-mono)', fontSize: 10, fontWeight: 600,
-              }}>{c}</button>
-            ))}
+      <Reveal>
+        <div className="card" style={{ marginBottom: 28, padding: '16px 20px' }}>
+          <div
+            style={{
+              display: 'flex',
+              gap: 14,
+              alignItems: 'center',
+              flexWrap: 'wrap',
+            }}
+          >
+            <input
+              className="input"
+              placeholder="Search the menu…"
+              value={search}
+              onChange={(e) => setSearch(e.target.value)}
+              style={{ maxWidth: 280 }}
+            />
+            <div style={{ display: 'flex', gap: 6, flexWrap: 'wrap' }}>
+              {CATEGORIES.map((c) => (
+                <button
+                  key={c}
+                  onClick={() => setCat(c)}
+                  className={`btn btn-sm ${cat === c ? 'btn-ember' : 'btn-ghost'}`}
+                >
+                  {c}
+                </button>
+              ))}
+            </div>
           </div>
         </div>
-      </div>
+      </Reveal>
 
-      {/* Items Grid */}
-      <div className="grid-3 stagger">
-        {filtered.map((item, i) => {
-          const cc = CAT_COLORS[item.category];
+      {/* Items grid */}
+      <Reveal stagger className="grid-3 stagger">
+        {filtered.map((item) => {
+          const color = CAT_COLORS[item.category] || 'var(--ember-deep)';
           return (
-            <div key={item.id} className="card" style={{
-              animationDelay: `${i * 0.05}s`,
-              opacity: item.available ? 1 : 0.55,
-            }}>
-              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: 10 }}>
+            <div
+              key={item.id}
+              className="card"
+              style={{
+                opacity: item.available ? 1 : 0.65,
+                transition: 'opacity 0.3s',
+              }}
+            >
+              <div
+                style={{
+                  display: 'flex',
+                  justifyContent: 'space-between',
+                  alignItems: 'flex-start',
+                  marginBottom: 12,
+                }}
+              >
                 <div style={{ flex: 1 }}>
-                  <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 4 }}>
-                    <h3 style={{ fontFamily: 'var(--font-display)', fontSize: 15, fontWeight: 700, color: 'var(--text-hi)', letterSpacing: '-0.2px' }}>
+                  <div
+                    style={{
+                      display: 'flex',
+                      alignItems: 'center',
+                      gap: 10,
+                      marginBottom: 6,
+                    }}
+                  >
+                    <h3
+                      style={{
+                        fontFamily: 'var(--font-display)',
+                        fontSize: 19,
+                        fontWeight: 500,
+                        color: 'var(--ink)',
+                        letterSpacing: '-0.018em',
+                      }}
+                    >
                       {item.name}
                     </h3>
-                    {!item.available && <span className="badge badge-red">86'd</span>}
+                    {!item.available && (
+                      <span className="badge badge-ember" style={{ fontSize: 10 }}>
+                        86&rsquo;d
+                      </span>
+                    )}
                   </div>
-                  <p style={{ fontSize: 12, color: 'var(--text-mid)', lineHeight: 1.5 }}>{item.desc}</p>
+                  <p
+                    style={{
+                      fontSize: 13,
+                      color: 'var(--ink-mid)',
+                      lineHeight: 1.55,
+                    }}
+                  >
+                    {item.desc}
+                  </p>
                 </div>
               </div>
 
-              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 14 }}>
-                <span className="badge" style={{
-                  background: cc.bg, border: `1px solid ${cc.border}`,
-                  color: cc.color,
-                }}>
-                  {item.category.toUpperCase()}
+              <div
+                style={{
+                  display: 'flex',
+                  justifyContent: 'space-between',
+                  alignItems: 'center',
+                  marginBottom: 16,
+                }}
+              >
+                <span
+                  style={{
+                    padding: '4px 12px',
+                    borderRadius: 99,
+                    background: 'var(--paper-soft)',
+                    border: `1px solid ${color}44`,
+                    color,
+                    fontFamily: 'var(--font-mono)',
+                    fontSize: 10,
+                    fontWeight: 500,
+                    letterSpacing: '0.1em',
+                    textTransform: 'uppercase',
+                  }}
+                >
+                  {item.category}
                 </span>
-                <span style={{ fontFamily: 'var(--font-display)', fontSize: 20, fontWeight: 800, color: 'var(--text-hi)', letterSpacing: '-0.5px' }}>
+                <span
+                  style={{
+                    fontFamily: 'var(--font-display)',
+                    fontSize: 24,
+                    fontWeight: 500,
+                    color: 'var(--ember-deep)',
+                    letterSpacing: '-0.025em',
+                  }}
+                >
                   ${item.price.toFixed(2)}
                 </span>
               </div>
 
-              <div style={{ display: 'flex', gap: 8, borderTop: '1px solid var(--border)', paddingTop: 12 }}>
-                <button onClick={() => toggle(item.id)} className="btn btn-ghost btn-sm" style={{ flex: 1 }}>
-                  {item.available ? '⊘ 86 It' : '✓ Restore'}
+              <div
+                style={{
+                  display: 'flex',
+                  gap: 8,
+                  borderTop: '1px solid var(--rule)',
+                  paddingTop: 14,
+                }}
+              >
+                <button
+                  onClick={() => toggle(item.id)}
+                  className="btn btn-ghost btn-sm"
+                  style={{ flex: 1 }}
+                >
+                  {item.available ? '86 it' : 'Restore'}
                 </button>
-                <button onClick={() => { setEditItem(item); setModal('edit'); }} className="btn btn-ghost btn-sm">
+                <button
+                  onClick={() => {
+                    setEditItem(item);
+                    setModal('edit');
+                  }}
+                  className="btn btn-ghost btn-sm"
+                >
                   Edit
                 </button>
-                <button onClick={() => remove(item.id)} className="btn btn-ghost btn-sm" style={{ color: 'var(--red)' }}>
+                <button
+                  onClick={() => remove(item.id)}
+                  className="btn btn-ghost btn-sm"
+                  style={{ color: 'var(--ember-deep)' }}
+                >
                   ✕
                 </button>
               </div>
@@ -210,17 +419,38 @@ export default function MenuManagement() {
         })}
 
         {/* Add placeholder */}
-        <button onClick={() => { setEditItem(null); setModal('new'); }} className="card" style={{
-          background: 'transparent',
-          border: '1px dashed var(--border)',
-          display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center',
-          gap: 8, cursor: 'pointer', minHeight: 160,
-          color: 'var(--text-mid)',
-        }}>
-          <span style={{ fontSize: 24 }}>+</span>
-          <span style={{ fontFamily: 'var(--font-mono)', fontSize: 10, letterSpacing: '0.08em' }}>ADD ITEM</span>
+        <button
+          onClick={() => {
+            setEditItem(null);
+            setModal('new');
+          }}
+          className="card"
+          style={{
+            background: 'transparent',
+            border: '1px dashed var(--rule-strong)',
+            display: 'flex',
+            flexDirection: 'column',
+            alignItems: 'center',
+            justifyContent: 'center',
+            gap: 10,
+            cursor: 'pointer',
+            minHeight: 200,
+            color: 'var(--ink-mid)',
+          }}
+        >
+          <span style={{ fontSize: 28, color: 'var(--ember)' }}>+</span>
+          <span
+            style={{
+              fontFamily: 'var(--font-mono)',
+              fontSize: 10,
+              letterSpacing: '0.12em',
+              textTransform: 'uppercase',
+            }}
+          >
+            Add item
+          </span>
         </button>
-      </div>
+      </Reveal>
 
       {(modal === 'new' || modal === 'edit') && (
         <Modal
