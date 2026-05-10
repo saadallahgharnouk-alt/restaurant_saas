@@ -5,3 +5,5 @@ export { default as TiltCard }       from './TiltCard.jsx';
 export { default as AnimatedNumber } from './AnimatedNumber.jsx';
 export { default as HeroCanvas }     from './HeroCanvas.jsx';
 export { default as Marquee }        from './Marquee.jsx';
+export { default as ImageUploader }  from './ImageUploader.jsx';
+export { ToastProvider, useToast }   from './Toast.jsx';

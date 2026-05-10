@@ -1,72 +1,48 @@
 import React from 'react';
-import { BrowserRouter, Routes, Route } from 'react-router-dom';
+import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom';
 import './App.css';
 
-import EnhancedLayout     from './components/EnhancedLayout';
-import Landing            from './app/landing';
-import Dashboard          from './app/enhanced-dashboard';
-import AnalyticsDashboard from './components/AnalyticsDashboard';
-import MenuManagement     from './app/menu/menupage';
-import EnhancedMenuPage   from './app/menu/enhanced-menu';
-import OrderCart          from './components/OrderCart';
-import RestaurantList     from './pages/RestaurantList';
-import KitchenBoard       from './app/kbs';
-import QRStudio           from './app/qr';
-import ScanMenu           from './app/scan-menu';
+import EnhancedLayout from './components/EnhancedLayout';
+import Landing        from './app/landing';
+import PublicMenu     from './app/menu-public';
+import Login          from './app/login';
+import Admin          from './app/admin';
+
+import { ContentProvider } from './store/content';
+import { AuthProvider, RequireAuth } from './store/auth';
+import { ToastProvider } from './components/primitives';
 
 /**
- * Three routing trees, by intent:
- *
- *   /m/:restaurantId   → public customer menu. NO chrome.
- *   /                  → marketing landing. Admin shell included (with nav
- *                         to actually reach the app).
- *   /dashboard, /qr,
- *   /menu, /kitchen,
- *   /order, /analytics,
- *   /restaurants       → admin app inside EnhancedLayout.
+ * Three pages (per the brief):
+ *   /        — restaurant presentation
+ *   /menu    — the menu (QR block at the bottom)
+ *   /admin   — manager panel, gated by /login
  */
 export default function App() {
   return (
     <BrowserRouter>
-      <Routes>
-        {/* Public QR scan — no admin shell */}
-        <Route path="/m/:restaurantId" element={<ScanMenu />} />
-
-        {/* Everything else lives inside the admin shell */}
-        <Route
-          path="*"
-          element={
+      <AuthProvider>
+        <ContentProvider>
+          <ToastProvider>
             <EnhancedLayout>
               <Routes>
-                <Route path="/"             element={<Landing />} />
-                <Route path="/dashboard"    element={<Dashboard />} />
-                <Route path="/restaurants"  element={<RestaurantList />} />
-                <Route path="/menu"         element={<EnhancedMenuPage />} />
-                <Route path="/menu/manage"  element={<MenuManagement />} />
-                <Route path="/kitchen"      element={<KitchenBoard />} />
-                <Route path="/order"        element={<OrderCart />} />
-                <Route path="/analytics"    element={<AnalyticsDashboard />} />
-                <Route path="/qr"           element={<QRStudio />} />
-                <Route path="*"             element={<NotFound />} />
+                <Route path="/"      element={<Landing />} />
+                <Route path="/menu"   element={<PublicMenu />} />
+                <Route path="/login"  element={<Login />} />
+                <Route
+                  path="/admin"
+                  element={
+                    <RequireAuth>
+                      <Admin />
+                    </RequireAuth>
+                  }
+                />
+                <Route path="*" element={<Navigate to="/" replace />} />
               </Routes>
             </EnhancedLayout>
-          }
-        />
-      </Routes>
+          </ToastProvider>
+        </ContentProvider>
+      </AuthProvider>
     </BrowserRouter>
-  );
-}
-
-function NotFound() {
-  return (
-    <div className="page">
-      <div className="empty-state">
-        <span style={{ fontSize: 40, color: 'var(--ember)', fontFamily: 'var(--font-display)' }}>◈</span>
-        <h2 className="page-title" style={{ fontSize: 28 }}>
-          That page <em>isn&rsquo;t set</em> yet.
-        </h2>
-        <p className="page-sub">The route doesn&rsquo;t exist &mdash; try the nav above.</p>
-      </div>
-    </div>
   );
 }
