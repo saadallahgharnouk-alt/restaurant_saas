@@ -5,12 +5,12 @@
       <stop offset="100%" stop-color="#ECE3D1"/>
     </linearGradient>
     <linearGradient id="og-coral" x1="0" y1="0" x2="1" y2="1">
-      <stop offset="0%" stop-color="#E86F4E"/>
-      <stop offset="100%" stop-color="#B13D2A"/>
+      <stop offset="0%" stop-color="#D25A35"/>
+      <stop offset="100%" stop-color="#942A18"/>
     </linearGradient>
     <radialGradient id="og-glow" cx="85%" cy="20%" r="60%">
-      <stop offset="0%" stop-color="#E86F4E" stop-opacity="0.28"/>
-      <stop offset="100%" stop-color="#E86F4E" stop-opacity="0"/>
+      <stop offset="0%" stop-color="#D25A35" stop-opacity="0.28"/>
+      <stop offset="100%" stop-color="#D25A35" stop-opacity="0"/>
     </radialGradient>
   </defs>
   <rect width="1200" height="630" fill="url(#og-bg)"/>

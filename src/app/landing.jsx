@@ -1,257 +1,185 @@
 import React from 'react';
 import { Link } from 'react-router-dom';
 import {
-  HeroCanvas,
+  HeroCanvas, // kept for the signatures block's subtle accent
   MagneticButton,
   TiltCard,
   AnimatedNumber,
   Reveal,
-  Marquee,
 } from '../components/primitives';
+import HeroVideo    from '../components/HeroVideo';
+import LocationMap  from '../components/LocationMap';
+import { useContent } from '../store/content';
 
-/* ───────────────────────────────────────────────────────────────
-   Landing page — the calm restaurant OS.
-   Editorial Fraunces hero, interactive canvas, tilt food card,
-   feature rows, testimonial grid, CTA band.
-   ─────────────────────────────────────────────────────────────── */
-
-const HERO_IMAGE =
-  'https://images.unsplash.com/photo-1504674900247-0877df9cc836?auto=format&fit=crop&w=1200&q=80';
-
-const FEATURE_IMAGES = {
-  qr: 'https://images.unsplash.com/photo-1555396273-367ea4eb4db5?auto=format&fit=crop&w=1200&q=80',
-  orders:
-    'https://images.unsplash.com/photo-1559339352-11d035aa65de?auto=format&fit=crop&w=1200&q=80',
-  analytics:
-    'https://images.unsplash.com/photo-1551218808-94e220e084d2?auto=format&fit=crop&w=1200&q=80',
-};
-
-const MARQUEE = [
-  'Botanique · Paris',
-  'Oyama Ramen · Tokyo',
-  'Cafe Tartine · SF',
-  'La Nuit Bleue · Lyon',
-  'Marzano · Milan',
-  'Maison Lune · NYC',
-  'Fika Collective · Stockholm',
-  'Sora · Melbourne',
-];
-
-const FEATURES = [
-  {
-    eyebrow: 'QR ordering',
-    title: (
-      <>
-        Guests scan. The menu <em>just opens.</em>
-      </>
-    ),
-    body:
-      'Print a QR card per table. No app, no signup, no friction — a warm editorial menu that feels designed for this restaurant, not every restaurant.',
-    bullets: [
-      { strong: 'Table-aware URLs', rest: '— orders hit the kitchen already tagged.' },
-      { strong: 'Print-ready cards', rest: '— bulk export in one click.' },
-      { strong: 'Fully offline demo', rest: '— rehearse before wiring the backend.' },
-    ],
-    cta: { label: 'Open QR Studio', to: '/qr' },
-    image: FEATURE_IMAGES.qr,
-    overlayTL: { label: 'Average scan', value: '1.2s' },
-    overlayBR: { label: 'Table', value: '#05' },
-  },
-  {
-    eyebrow: 'Live service',
-    title: (
-      <>
-        From chair to kitchen, <em>without a chit.</em>
-      </>
-    ),
-    body:
-      'A single flow: cart → send to kitchen → board lights up. No more printer jams, lost orders, or waving a server down. Your team sees what matters, nothing more.',
-    bullets: [
-      { strong: 'Pending · Cooking · Ready', rest: ' — a kitchen board anyone can read.' },
-      { strong: 'Promo codes', rest: ' — SAVE10 / SAVE20 / WELCOME out of the box.' },
-      { strong: 'Drawer-first UX', rest: ' — optimized for phones and one thumb.' },
-    ],
-    cta: { label: 'See the board', to: '/kitchen' },
-    image: FEATURE_IMAGES.orders,
-    flip: true,
-    overlayTL: { label: 'Ticket', value: '#847' },
-    overlayBR: { label: 'Ready in', value: '4:20' },
-  },
-  {
-    eyebrow: 'Quiet analytics',
-    title: (
-      <>
-        Numbers that <em>read like a story.</em>
-      </>
-    ),
-    body:
-      "Revenue by day, top dishes, category mix. No dashboards shouting at you — just what this Tuesday did, and what tomorrow's prep should look like.",
-    bullets: [
-      { strong: 'Live figures', rest: ' — revenue, orders, average ticket, uptime.' },
-      { strong: 'Top-item leaderboard', rest: ' — with a calm progress bar.' },
-      { strong: 'Category mix', rest: ' — served as a segmented ribbon.' },
-    ],
-    cta: { label: 'View analytics', to: '/analytics' },
-    image: FEATURE_IMAGES.analytics,
-    overlayTL: { label: 'This week', value: '$12,450' },
-    overlayBR: { label: 'vs last', value: '+12%' },
-  },
-];
-
-const QUOTES = [
-  {
-    quote:
-      'We rolled this out on a Tuesday. By Friday service, we were taking 30% of orders straight from the table.',
-    name: 'Mina R.',
-    role: 'Owner · Botanique, Paris',
-    initial: 'M',
-  },
-  {
-    quote:
-      'The scan page feels like our restaurant — not a generic white-label menu. That matters.',
-    name: 'Takeshi O.',
-    role: 'Head chef · Oyama, Tokyo',
-    initial: 'T',
-  },
-  {
-    quote:
-      'My kitchen runs quieter now. We stopped printing chits. Nobody misses them.',
-    name: 'Jade P.',
-    role: 'Operations · Maison Lune',
-    initial: 'J',
-  },
-];
+/* ────────────────────────────────────────────────────────────────
+   Landing — single-restaurant presentation.
+   Hero video → story → signatures → gallery → reviews → location.
+   No QR here: the customer lands here cold; the QR lives at the
+   end of /menu, where it makes sense to save / share the menu.
+   ──────────────────────────────────────────────────────────────── */
 
 export default function Landing() {
+  const c = useContent();
+
   return (
     <>
-      {/* ─── Hero ─────────────────────────────────────────────── */}
-      <section className="landing-hero">
-        <div className="landing-hero-grid">
-          {/* Left — editorial headline */}
-          <Reveal as="div" stagger className="stagger">
-            <span className="eyebrow">The calm restaurant OS</span>
+      {/* ─── Hero (video) ──────────────────────────────────── */}
+      <HeroVideo
+        src={c.hero.videoSrc}
+        poster={c.hero.videoPoster}
+        fallbackImage={c.hero.image}
+      >
+        <div style={{ maxWidth: 760 }}>
+          <span
+            className="eyebrow"
+            style={{ color: 'rgba(245,239,227,0.78)' }}
+          >
+            {c.hero.eyebrow}
+          </span>
 
-            <h1 className="landing-hero-title">
-              Taste,&nbsp;served
-              <br />
-              <em>with intention.</em>
-            </h1>
+          <h1
+            className="landing-hero-title"
+            style={{ color: 'var(--paper-mist)', marginTop: 14 }}
+          >
+            {c.hero.title_before}
+            <br />
+            <em>{c.hero.title_em}</em>&nbsp;
+            <span
+              dangerouslySetInnerHTML={{ __html: c.hero.title_after }}
+            />
+          </h1>
 
-            <p className="landing-hero-lead">
-              RestauHub is a warm, unhurried operating system for modern
-              restaurants — QR menus, live orders, a kitchen board and
-              analytics, all quietly in one place.
-            </p>
+          <p
+            className="landing-hero-lead"
+            style={{ color: 'rgba(245,239,227,0.82)', marginTop: 20 }}
+          >
+            {c.hero.subtitle}
+          </p>
 
-            <div className="landing-hero-cta">
-              <MagneticButton
-                as={Link}
-                to="/qr"
-                className="btn btn-ember btn-lg btn-arrow"
-              >
-                Generate a QR menu
-              </MagneticButton>
-              <MagneticButton
-                as={Link}
-                to="/m/1"
-                className="btn btn-ghost btn-lg"
-                strength={8}
-              >
-                See a live menu
-              </MagneticButton>
+          <div className="landing-hero-cta" style={{ marginTop: 28 }}>
+            <MagneticButton
+              as={Link}
+              to={c.hero.cta_primary?.href || '/menu'}
+              className="btn btn-ember btn-lg btn-arrow"
+            >
+              {c.hero.cta_primary?.label || 'See the menu'}
+            </MagneticButton>
+            <MagneticButton
+              as="a"
+              href={c.hero.cta_secondary?.href || '#find'}
+              className="btn btn-ghost-ink btn-lg"
+              strength={8}
+            >
+              {c.hero.cta_secondary?.label || 'Find the table'}
+            </MagneticButton>
+          </div>
+
+          <div
+            className="landing-hero-meta"
+            style={{ marginTop: 36 }}
+          >
+            <div>
+              <strong style={{ color: 'var(--paper-mist)' }}>
+                {c.brand.location_city}
+              </strong>
+              <span>Where we cook</span>
             </div>
-
-            <div className="landing-hero-meta">
-              <div>
-                <strong>
-                  <AnimatedNumber value={6423} />
-                </strong>
-                <span>Orders / month</span>
-              </div>
-              <div>
-                <strong>
-                  <AnimatedNumber value={1.2} decimals={1} suffix="s" />
-                </strong>
-                <span>Avg. scan time</span>
-              </div>
-              <div>
-                <strong>
-                  <AnimatedNumber value={99.9} decimals={1} suffix="%" />
-                </strong>
-                <span>Uptime · 30 d</span>
-              </div>
+            <div>
+              <strong style={{ color: 'var(--paper-mist)' }}>Est. 2024</strong>
+              <span>Hay Hassani</span>
             </div>
-          </Reveal>
-
-          {/* Right — tilt photo + chips + canvas */}
-          <Reveal>
-            <div className="landing-hero-visual">
-              <div className="landing-hero-canvas">
-                <HeroCanvas density={52} />
-              </div>
-
-              <TiltCard className="landing-hero-photo" max={9} glare>
-                <img
-                  src={HERO_IMAGE}
-                  alt="A plated dish, photographed from above"
-                  loading="eager"
-                />
-              </TiltCard>
-
-              <FloatChip
-                className="float-chip-1"
-                badge="▦"
-                label="Table 12"
-                value="scanned"
-              />
-              <FloatChip
-                className="float-chip-2"
-                badge="$"
-                label="Tonight"
-                value="$1,284"
-              />
-              <FloatChip
-                className="float-chip-3"
-                badge="●"
-                label="Live orders"
-                value="14"
-              />
+            <div>
+              <strong style={{ color: 'var(--paper-mist)' }}>
+                <AnimatedNumber value={12} />
+              </strong>
+              <span>Tables inside</span>
             </div>
-          </Reveal>
+          </div>
         </div>
+      </HeroVideo>
+
+      {/* ─── Story ─────────────────────────────────────────── */}
+      <section className="story-row">
+        <Reveal as="figure" className="story-visual">
+          <img src={c.story.image} alt="" />
+          {c.story.image_caption && (
+            <figcaption>{c.story.image_caption}</figcaption>
+          )}
+        </Reveal>
+
+        <Reveal as="div">
+          <span className="eyebrow">{c.story.eyebrow}</span>
+          <h2>
+            {c.story.title_before}{' '}
+            <em>{c.story.title_em}</em>
+            <span dangerouslySetInnerHTML={{ __html: c.story.title_after }} />
+          </h2>
+          <div className="prose">
+            {c.story.paragraphs.map((p, i) => (
+              <p key={i} dangerouslySetInnerHTML={{ __html: p }} />
+            ))}
+          </div>
+        </Reveal>
       </section>
 
-      {/* ─── Marquee ─────────────────────────────────────────── */}
-      <Marquee items={MARQUEE} />
+      {/* ─── Signature dishes ─────────────────────────────── */}
+      <SignatureRow />
 
-      {/* ─── Feature rows ────────────────────────────────────── */}
-      <div style={{ maxWidth: 'var(--page-max)', margin: '0 auto', padding: '0 var(--page-gutter)' }}>
-        {FEATURES.map((f, i) => (
-          <Reveal key={i}>
-            <FeatureRow {...f} />
-          </Reveal>
-        ))}
-      </div>
+      {/* ─── Gallery ──────────────────────────────────────── */}
+      <section className="gallery-section">
+        <Reveal as="div">
+          <span className="eyebrow">Inside the room</span>
+          <h2
+            style={{
+              fontFamily: 'var(--font-display)',
+              fontSize: 'clamp(28px,3.4vw,44px)',
+              fontWeight: 440,
+              letterSpacing: '-0.025em',
+              marginTop: 10,
+              color: 'var(--ink)',
+            }}
+          >
+            A few <em style={{ color: 'var(--ember-deep)', fontStyle: 'italic', fontWeight: 380 }}>frames</em>.
+          </h2>
+        </Reveal>
 
-      {/* ─── Testimonials ────────────────────────────────────── */}
+        <Reveal stagger className="gallery-grid stagger">
+          {c.gallery.slice(0, 6).map((src, i) => (
+            <div key={i} className="gallery-cell">
+              <img src={src} alt="" loading="lazy" />
+            </div>
+          ))}
+        </Reveal>
+      </section>
+
+      {/* ─── Reviews ──────────────────────────────────────── */}
       <section className="quotes-section">
         <Reveal>
-          <span className="eyebrow">Loved by calm operators</span>
-          <h2 className="page-title" style={{ marginTop: 10, maxWidth: 20 + 'ch' }}>
-            Designed for the <em>dinner rush.</em>
+          <span className="eyebrow">What people say</span>
+          <h2
+            className="page-title"
+            style={{ marginTop: 10, maxWidth: '18ch' }}
+          >
+            Three rooms over, <em>one long table</em>.
           </h2>
         </Reveal>
 
         <Reveal stagger className="quotes-grid stagger">
-          {QUOTES.map((q, i) => (
-            <TiltCard key={i} as="article" className="quote-card" max={5}>
+          {c.reviews.map((q, i) => (
+            <TiltCard
+              key={i}
+              as="article"
+              className="quote-card"
+              max={5}
+            >
               <span className="mark">&ldquo;</span>
-              <p>{q.quote}</p>
+              <p dangerouslySetInnerHTML={{ __html: q.quote }} />
               <div className="who">
-                <div className="avatar">{q.initial}</div>
+                <div className="avatar">{q.name.trim()[0] || 'A'}</div>
                 <div>
-                  <div style={{ fontWeight: 600, color: 'var(--ink)' }}>{q.name}</div>
+                  <div style={{ fontWeight: 600, color: 'var(--ink)' }}>
+                    {q.name}
+                  </div>
                   <small>{q.role}</small>
                 </div>
               </div>
@@ -260,51 +188,116 @@ export default function Landing() {
         </Reveal>
       </section>
 
-      {/* ─── CTA band ────────────────────────────────────────── */}
+      {/* ─── Location ─────────────────────────────────────── */}
+      <section id="find" className="location-section">
+        <Reveal>
+          <span className="eyebrow">Find the table</span>
+          <h2
+            className="page-title"
+            style={{ marginTop: 10, maxWidth: '18ch' }}
+          >
+            {c.location.line1.split(',')[0]},<br />
+            <em>{c.brand.location_city}</em>.
+          </h2>
+        </Reveal>
+
+        <div className="location-grid">
+          <Reveal>
+            <div className="location-info">
+              <span className="eyebrow">Address</span>
+              <p
+                style={{
+                  fontFamily: 'var(--font-display)',
+                  fontSize: 20,
+                  fontWeight: 500,
+                  color: 'var(--ink)',
+                  letterSpacing: '-0.015em',
+                  marginTop: 8,
+                }}
+              >
+                {c.location.line1}
+              </p>
+              <p
+                style={{ color: 'var(--ink-mid)', fontSize: 14 }}
+              >
+                {c.location.line2} · {c.location.country}
+              </p>
+
+              <div style={{ marginTop: 20, display: 'flex', gap: 10, flexWrap: 'wrap' }}>
+                <a
+                  href={`tel:${(c.brand.phone || '').replace(/[^\d+]/g, '')}`}
+                  className="btn btn-ghost btn-sm"
+                >
+                  {c.brand.phone}
+                </a>
+                <a
+                  href={`mailto:${c.brand.email || ''}`}
+                  className="btn btn-ghost btn-sm"
+                >
+                  {c.brand.email}
+                </a>
+              </div>
+
+              <div style={{ marginTop: 26 }}>
+                <span className="eyebrow">Hours</span>
+                <div className="location-hours">
+                  {c.location.hours.map((h, i) => (
+                    <div key={i} className="location-hour">
+                      <span className="day">{h.label}</span>
+                      <span className="time">{h.time}</span>
+                    </div>
+                  ))}
+                </div>
+              </div>
+            </div>
+          </Reveal>
+
+          <Reveal>
+            <LocationMap
+              lat={c.location.lat}
+              lng={c.location.lng}
+              title={`${c.brand.name} — map`}
+            />
+          </Reveal>
+        </div>
+      </section>
+
+      {/* ─── CTA band ─────────────────────────────────────── */}
       <section className="cta-band">
         <Reveal>
           <div className="cta-inner">
             <div>
-              <span className="eyebrow" style={{ color: 'rgba(245,239,227,0.65)' }}>
-                Start tonight
+              <span
+                className="eyebrow"
+                style={{ color: 'rgba(245,239,227,0.65)' }}
+              >
+                Reserve
               </span>
               <h2>
-                Your next <em>service</em>,<br />made quieter.
+                A table that <em>knew your name</em><br />before you walked in.
               </h2>
               <p>
-                No credit card, no setup call. Open a workspace, print a QR,
-                start taking orders. Your kitchen will notice.
+                Call ahead, or walk in Tuesday through Saturday. We save a
+                couple of spots at the counter for neighbours.
               </p>
             </div>
 
             <div className="cta-aside">
               <MagneticButton
-                as={Link}
-                to="/dashboard"
+                as="a"
+                href={`tel:${(c.brand.phone || '').replace(/[^\d+]/g, '')}`}
                 className="btn btn-ember btn-lg btn-arrow"
               >
-                Open the dashboard
+                Call {c.brand.phone}
               </MagneticButton>
               <MagneticButton
                 as={Link}
-                to="/qr"
+                to="/menu"
                 className="btn btn-ghost-ink btn-lg"
                 strength={8}
               >
-                Generate a QR menu
+                Read the menu first
               </MagneticButton>
-              <div
-                style={{
-                  fontFamily: 'var(--font-mono)',
-                  fontSize: 11,
-                  letterSpacing: '0.12em',
-                  color: 'rgba(245,239,227,0.55)',
-                  marginTop: 10,
-                  textTransform: 'uppercase',
-                }}
-              >
-                Already serving · 6 venues · Morocco · France · Japan
-              </div>
             </div>
           </div>
         </Reveal>
@@ -313,120 +306,110 @@ export default function Landing() {
   );
 }
 
-/* ─────────────────────────────────────────────────────────────── */
+/* ───────────────────────────────────────────────────────────── */
 
-function FloatChip({ className, badge, label, value }) {
+function SignatureRow() {
+  const c = useContent();
+  const items = (c.menu.items || [])
+    .filter((i) => i.signature && i.available)
+    .slice(0, 3);
+  const currency = c.brand.currency || '$';
+
+  if (items.length === 0) return null;
+
   return (
-    <div className={`float-chip ${className || ''}`.trim()}>
-      <span className="ic">{badge}</span>
-      <div>
-        <div className="lbl">{label}</div>
-        <div className="val">{value}</div>
-      </div>
-    </div>
-  );
-}
+    <section className="signatures-section">
+      <Reveal>
+        <span className="eyebrow">{c.signatures.eyebrow}</span>
+        <h2
+          style={{
+            fontFamily: 'var(--font-display)',
+            fontSize: 'clamp(30px,3.8vw,52px)',
+            fontWeight: 440,
+            letterSpacing: '-0.025em',
+            marginTop: 10,
+            color: 'var(--ink)',
+            lineHeight: 1.05,
+          }}
+        >
+          {c.signatures.title_before}{' '}
+          <em style={{ color: 'var(--ember-deep)', fontStyle: 'italic', fontWeight: 380 }}>
+            {c.signatures.title_em}
+          </em>
+          {c.signatures.title_after}
+        </h2>
+        <p
+          style={{
+            color: 'var(--ink-mid)',
+            fontSize: 17,
+            lineHeight: 1.6,
+            maxWidth: '50ch',
+            marginTop: 16,
+          }}
+        >
+          {c.signatures.subtitle}
+        </p>
+      </Reveal>
 
-function FeatureRow({
-  eyebrow,
-  title,
-  body,
-  bullets,
-  cta,
-  image,
-  flip,
-  overlayTL,
-  overlayBR,
-}) {
-  return (
-    <article className={`feature-row ${flip ? 'flip' : ''}`.trim()}>
-      <div className="fr-text">
-        <span className="eyebrow">{eyebrow}</span>
-        <h3>{title}</h3>
-        <p>{body}</p>
-
-        {bullets?.length > 0 && (
-          <ul className="fr-bullets">
-            {bullets.map((b, i) => (
-              <li key={i}>
-                <div>
-                  <strong>{b.strong}</strong>
-                  {b.rest}
-                </div>
-              </li>
-            ))}
-          </ul>
-        )}
-
-        {cta && (
-          <MagneticButton
-            as={Link}
-            to={cta.to}
-            className="btn btn-ghost btn-arrow"
-            strength={8}
+      <div
+        style={{
+          display: 'grid',
+          gridTemplateColumns: 'repeat(auto-fit, minmax(260px, 1fr))',
+          gap: 24,
+          marginTop: 44,
+        }}
+      >
+        {items.map((item) => (
+          <TiltCard
+            key={item.id}
+            as="article"
+            className="signature-card"
+            max={5}
+            glare={false}
           >
-            {cta.label}
-          </MagneticButton>
-        )}
+            <div className="signature-img">
+              {item.image ? (
+                <img src={item.image} alt={item.name} loading="lazy" />
+              ) : (
+                <div
+                  style={{
+                    width: '100%',
+                    height: '100%',
+                    background: 'var(--paper-warm)',
+                  }}
+                />
+              )}
+              <span className="signature-chip">Signature</span>
+            </div>
+            <div className="signature-meta">
+              <div
+                className="signature-name"
+                dangerouslySetInnerHTML={{ __html: item.name }}
+              />
+              <span className="signature-price">
+                {currency} {item.price}
+              </span>
+            </div>
+            <p className="signature-desc">{item.description}</p>
+          </TiltCard>
+        ))}
       </div>
 
-      <TiltCard className="fr-visual" max={5} glare={false}>
-        <img src={image} alt="" loading="lazy" />
-
-        {overlayTL && (
-          <div className="overlay tl">
-            <div
-              style={{
-                fontFamily: 'var(--font-mono)',
-                fontSize: 10,
-                letterSpacing: '0.12em',
-                color: 'var(--ink-faint)',
-                textTransform: 'uppercase',
-              }}
-            >
-              {overlayTL.label}
-            </div>
-            <div
-              style={{
-                fontFamily: 'var(--font-display)',
-                fontSize: 18,
-                fontWeight: 500,
-                color: 'var(--ink)',
-                letterSpacing: '-0.02em',
-              }}
-            >
-              {overlayTL.value}
-            </div>
-          </div>
-        )}
-
-        {overlayBR && (
-          <div className="overlay br">
-            <div
-              style={{
-                fontFamily: 'var(--font-mono)',
-                fontSize: 10,
-                letterSpacing: '0.12em',
-                color: 'var(--ink-faint)',
-                textTransform: 'uppercase',
-              }}
-            >
-              {overlayBR.label}
-            </div>
-            <div
-              style={{
-                fontFamily: 'var(--font-display)',
-                fontSize: 18,
-                fontWeight: 500,
-                color: 'var(--ember-deep)',
-                letterSpacing: '-0.02em',
-              }}
-            >
-              {overlayBR.value}
-            </div>
-          </div>
-        )}
-      </TiltCard>
-    </article>
+      <div
+        style={{
+          display: 'flex',
+          justifyContent: 'center',
+          marginTop: 40,
+        }}
+      >
+        <MagneticButton
+          as={Link}
+          to="/menu"
+          className="btn btn-ghost btn-arrow"
+        >
+          See the full menu
+        </MagneticButton>
+      </div>
+    </section>
   );
 }

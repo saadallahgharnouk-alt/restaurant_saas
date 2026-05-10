@@ -1,22 +1,17 @@
 import React, { useEffect, useState } from 'react';
 import { Link, useLocation } from 'react-router-dom';
 import { GrainOverlay, MagneticButton } from './primitives';
+import { useAuth } from '../store/auth';
+import { useContent } from '../store/content';
 
-/* ───────────────────────────────────────────────────────────────
-   EnhancedLayout — the admin chrome (top nav + footer + grain).
-   Anthropic/Linear inspired: cream paper, sticky nav that subtly
-   densifies on scroll, pill links, magnetic CTA, mobile drawer.
-   ─────────────────────────────────────────────────────────────── */
+/* ──────────────────────────────────────────────────────────────
+   Site chrome — cream sticky nav + footer. Three primary routes:
+   Home, Menu, and the manager login / panel.
+   ────────────────────────────────────────────────────────────── */
 
-const NAV = [
-  { to: '/',            label: 'Home'        },
-  { to: '/dashboard',   label: 'Dashboard'   },
-  { to: '/menu',        label: 'Menu'        },
-  { to: '/qr',          label: 'QR Studio'   },
-  { to: '/kitchen',     label: 'Kitchen'     },
-  { to: '/order',       label: 'Orders'      },
-  { to: '/analytics',   label: 'Analytics'   },
-  { to: '/restaurants', label: 'Venues'      },
+const PUBLIC_NAV = [
+  { to: '/',      label: 'Home' },
+  { to: '/menu',  label: 'Menu' },
 ];
 
 function isActive(pathname, to) {
@@ -26,6 +21,8 @@ function isActive(pathname, to) {
 
 export default function EnhancedLayout({ children }) {
   const { pathname } = useLocation();
+  const { user }     = useAuth();
+  const content      = useContent();
   const [scrolled, setScrolled] = useState(false);
   const [open, setOpen]         = useState(false);
 
@@ -36,26 +33,30 @@ export default function EnhancedLayout({ children }) {
     return () => window.removeEventListener('scroll', onScroll);
   }, []);
 
-  // Close mobile menu when route changes.
   useEffect(() => { setOpen(false); }, [pathname]);
+
+  const brand = content?.brand?.name || 'RestauHub';
 
   return (
     <div className="app">
       <GrainOverlay />
 
       <nav className={`nav ${scrolled ? 'scrolled' : ''}`}>
-        <Link to="/" className="nav-brand" aria-label="RestauHub home">
+        <Link to="/" className="nav-brand" aria-label={`${brand} home`}>
           <img src="/logo-mark.svg" alt="" width="36" height="36" />
           <span className="nav-brand-text">
             <span className="nav-brand-name">
-              restau<em>hub</em>
+              {brand.split(' ')[0]}{' '}
+              <em>{brand.split(' ').slice(1).join(' ') || content?.brand?.location_city || ''}</em>
             </span>
-            <span className="nav-brand-sub">Restaurant OS</span>
+            <span className="nav-brand-sub">
+              {content?.brand?.location_city || 'Restaurant'}
+            </span>
           </span>
         </Link>
 
         <div className={`nav-links ${open ? 'open' : ''}`}>
-          {NAV.map((n) => (
+          {PUBLIC_NAV.map((n) => (
             <Link
               key={n.to}
               to={n.to}
@@ -64,17 +65,32 @@ export default function EnhancedLayout({ children }) {
               {n.label}
             </Link>
           ))}
+
+          {user ? (
+            <Link
+              to="/admin"
+              className={`nav-link ${isActive(pathname, '/admin') ? 'active' : ''}`}
+            >
+              Manager
+            </Link>
+          ) : (
+            <Link
+              to="/login"
+              className={`nav-link ${isActive(pathname, '/login') ? 'active' : ''}`}
+            >
+              Login
+            </Link>
+          )}
         </div>
 
         <div className="nav-actions">
-          <span className="status-dot" aria-label="System status: live">Live</span>
           <MagneticButton
-            as={Link}
-            to="/qr"
+            as="a"
+            href={`tel:${(content?.brand?.phone || '').replace(/[^\d+]/g, '')}`}
             className="btn btn-ember btn-sm btn-arrow"
             strength={8}
           >
-            New QR
+            Reserve
           </MagneticButton>
           <button
             type="button"
@@ -96,8 +112,10 @@ export default function EnhancedLayout({ children }) {
 
       <footer className="site-footer">
         <span>
-          <span className="brandline">restau<em>hub</em></span>
-          &nbsp;·&nbsp; built for calm kitchens &nbsp;·&nbsp; © {new Date().getFullYear()}
+          <span className="brandline">{brand}</span>
+          &nbsp;·&nbsp; {content?.brand?.location_city},{' '}
+          {content?.brand?.location_country} &nbsp;·&nbsp;{' '}
+          © {new Date().getFullYear()}
         </span>
         <span
           style={{
@@ -107,7 +125,7 @@ export default function EnhancedLayout({ children }) {
             fontSize: 11,
           }}
         >
-          React &middot; Vite &middot; Node
+          {content?.brand?.instagram || 'Made with care'}
         </span>
       </footer>
     </div>
