@@ -1,5 +1,6 @@
 import React, { useState, useEffect, useCallback } from "react";
 import { useContent } from "../../../lib/content-store";
+import MediaUpload from "../../../components/MediaUpload";
 
 /* ───────────────────────────────────────────────────────────────
    Landing Editor (Req 8)
@@ -131,21 +132,18 @@ export default function LandingEditor() {
       </Field>
 
       {/* Hero Image URL */}
-      <Field label="Hero Image URL" error={errors.heroImageUrl}>
+      <Field label="Hero Image" error={errors.heroImageUrl}>
         <input
           className="input"
           value={local.heroImageUrl || ""}
           onChange={(e) => set("heroImageUrl", e.target.value)}
-          placeholder="https://images.unsplash.com/..."
+          placeholder="https://images.unsplash.com/... or upload below"
         />
-        {local.heroImageUrl && (
-          <img
-            src={local.heroImageUrl}
-            alt="Hero preview"
-            style={{ marginTop: 10, maxWidth: 200, maxHeight: 120, borderRadius: 10, objectFit: "cover", border: "1px solid var(--rule)" }}
-            onError={(e) => { e.target.style.display = "none"; }}
-          />
-        )}
+        <MediaUpload
+          value={local.heroImageUrl || ""}
+          onChange={(url) => set("heroImageUrl", url)}
+          label="Upload hero image"
+        />
       </Field>
 
       <Divider />
@@ -276,8 +274,13 @@ function FeatureRowEditor({ index, feature, errors, onChange, onRemove, onMoveUp
         </SmallField>
       </div>
 
-      <SmallField label="Image URL">
-        <input className="input" value={feature.imageUrl || ""} onChange={(e) => up("imageUrl", e.target.value)} placeholder="https://..." />
+      <SmallField label="Image">
+        <input className="input" value={feature.imageUrl || ""} onChange={(e) => up("imageUrl", e.target.value)} placeholder="https://... or upload below" />
+        <MediaUpload
+          value={feature.imageUrl || ""}
+          onChange={(url) => up("imageUrl", url)}
+          label="Upload feature image"
+        />
       </SmallField>
     </div>
   );

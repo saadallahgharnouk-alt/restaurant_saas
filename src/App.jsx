@@ -57,9 +57,10 @@ export default function App() {
                       path="/restaurants"
                       element={<AuthGate><RestaurantList /></AuthGate>}
                     />
+                    {/* Menu is public — customers can browse */}
                     <Route
                       path="/menu"
-                      element={<AuthGate><EnhancedMenuPage /></AuthGate>}
+                      element={<EnhancedMenuPage />}
                     />
                     <Route
                       path="/menu/manage"

@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from "react";
 import { useContent } from "../../../lib/content-store";
+import MediaUpload from "../../../components/MediaUpload";
 
 /* ───────────────────────────────────────────────────────────────
    Menu Item Editor (Req 12)
@@ -268,16 +269,13 @@ function ItemForm({ item, index, categories, errors, onChange, onToggleActive })
         </Field>
       </div>
 
-      <Field label="Photo URL">
-        <input className="input" value={item.photoUrl} onChange={(e) => onChange("photoUrl", e.target.value)} placeholder="https://..." />
-        {item.photoUrl && (
-          <img
-            src={item.photoUrl}
-            alt=""
-            style={{ marginTop: 8, maxWidth: 120, maxHeight: 80, borderRadius: 8, objectFit: "cover", border: "1px solid var(--rule)" }}
-            onError={(e) => { e.target.style.display = "none"; }}
-          />
-        )}
+      <Field label="Photo">
+        <input className="input" value={item.photoUrl} onChange={(e) => onChange("photoUrl", e.target.value)} placeholder="https://... or upload below" />
+        <MediaUpload
+          value={item.photoUrl}
+          onChange={(url) => onChange("photoUrl", url)}
+          label="Upload dish photo"
+        />
       </Field>
 
       {/* Ingredients */}

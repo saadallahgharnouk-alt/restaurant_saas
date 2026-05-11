@@ -42,8 +42,14 @@ export default function EnhancedLayout({ children }) {
     navigate('/');
   };
 
+  // Detect if we're on an admin/manager route to disable animations
+  const isAdminRoute = pathname.startsWith('/dashboard') || pathname.startsWith('/admin') ||
+    pathname.startsWith('/kitchen') || pathname.startsWith('/order') ||
+    pathname.startsWith('/analytics') || pathname.startsWith('/qr') ||
+    pathname.startsWith('/restaurants') || pathname === '/menu/manage';
+
   return (
-    <div className="app">
+    <div className={`app ${isAdminRoute ? 'admin-no-anim' : ''}`}>
       <GrainOverlay />
 
       <nav className={`nav ${scrolled ? 'scrolled' : ''}`}>

@@ -1799,3 +1799,42 @@ body {
     transition: none !important;
   }
 }
+
+
+/* ═════════════════════════════════════════════════════════════════ */
+/* Admin/Manager area — disable decorative animations                  */
+/* Applied when body has .admin-active class or via route context       */
+/* ═════════════════════════════════════════════════════════════════ */
+
+.admin-no-anim .reveal {
+  opacity: 1 !important;
+  transform: none !important;
+  transition: none !important;
+}
+
+.admin-no-anim .stagger > * {
+  opacity: 1 !important;
+  transform: none !important;
+  animation: none !important;
+}
+
+.admin-no-anim .float-chip {
+  animation: none !important;
+}
+
+.admin-no-anim [data-tilt] {
+  transform: none !important;
+  transition: none !important;
+}
+
+.admin-no-anim .marquee-track {
+  animation: none !important;
+}
+
+.admin-no-anim .landing-hero-canvas {
+  display: none !important;
+}
+
+.admin-no-anim .landing-hero-photo img {
+  transition: none !important;
+}

@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from "react";
 import { useContent } from "../../../lib/content-store";
+import MediaUpload from "../../../components/MediaUpload";
 
 /* ───────────────────────────────────────────────────────────────
    Branding Editor (Req 7)
@@ -116,32 +117,20 @@ export default function BrandingEditor() {
         />
       </FieldGroup>
 
-      {/* Logo URL */}
-      <FieldGroup label="Logo URL" error={errors.logoUrl}>
+      {/* Logo */}
+      <FieldGroup label="Logo" error={errors.logoUrl}>
         <input
           className="input"
           type="text"
           value={logoUrl}
           onChange={(e) => handleChange("logoUrl", e.target.value)}
-          placeholder="https://... or leave empty"
+          placeholder="https://... or upload below"
         />
-        {logoUrl && !errors.logoUrl && (
-          <div style={{ marginTop: 12 }}>
-            <img
-              src={logoUrl}
-              alt="Logo preview"
-              style={{
-                maxWidth: 120,
-                maxHeight: 120,
-                borderRadius: 12,
-                border: "1px solid var(--rule)",
-                objectFit: "contain",
-                background: "var(--surface-2)",
-              }}
-              onError={(e) => { e.target.style.display = "none"; }}
-            />
-          </div>
-        )}
+        <MediaUpload
+          value={logoUrl}
+          onChange={(url) => handleChange("logoUrl", url)}
+          label="Upload logo"
+        />
       </FieldGroup>
     </div>
   );
