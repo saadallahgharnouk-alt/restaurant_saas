@@ -138,3 +138,4 @@ dist
 
 # CMS data (persisted at runtime, not committed)
 backend/data/
+nodejs/

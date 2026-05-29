@@ -41,13 +41,6 @@ function validateString(value, path, { min = 0, max = Infinity } = {}) {
   return null;
 }
 
-function validateUrl(value, path, { allowEmpty = true, pattern = null } = {}) {
-  if (!isString(value)) return fail(path, "must be a string");
-  if (value === "" && allowEmpty) return null;
-  if (pattern && !pattern.test(value)) return fail(path, "invalid URL format");
-  return null;
-}
-
 function validateLogoUrl(value, path) {
   if (!isString(value)) return fail(path, "must be a string");
   if (value === "") return null;
@@ -108,8 +101,8 @@ function validateLanding(landing, basePath) {
       return fail(`${basePath}.marqueeItems[${i}]`, "must be a string");
   }
   if (!isArray(landing.features)) return fail(`${basePath}.features`, "must be an array");
-  if (landing.features.length < 3 || landing.features.length > 6)
-    return fail(`${basePath}.features`, "must have 3-6 items");
+  if (landing.features.length > 6)
+    return fail(`${basePath}.features`, "must have at most 6 items");
   for (let i = 0; i < landing.features.length; i++) {
     err = validateFeature(landing.features[i], `${basePath}.features[${i}]`);
     if (err) return err;
