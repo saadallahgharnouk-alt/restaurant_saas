@@ -1,5 +1,5 @@
 import React, { createContext, useContext, useState, useEffect, useCallback, useRef } from "react";
-import { validate, DEFAULT_CONTENT, serialize, deserialize, assertIntegrity } from "./content-schema.js";
+import { validate, DEFAULT_CONTENT, serialize, assertIntegrity } from "./content-schema.js";
 
 const STORAGE_KEY = "restauhub.cms.v1";
 const API_BASE = import.meta.env.VITE_API_URL || "http://localhost:5000";

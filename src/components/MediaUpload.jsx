@@ -68,7 +68,7 @@ export default function MediaUpload({ value, onChange, label = "Upload Photo" })
     try {
       const dataUri = await readAsDataUri(file);
       onChange(dataUri);
-    } catch (err) {
+    } catch {
       setError("Failed to read file.");
     }
 

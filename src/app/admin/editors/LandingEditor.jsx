@@ -50,10 +50,9 @@ export default function LandingEditor() {
       errs.heroLead = "Must be at most 400 characters.";
 
     if (!local.marqueeItems || local.marqueeItems.length < 1)
-      errs.marqueeItems = "At least 1 marquee item is required.";
+      errs.marqueeItems = "At least 1 highlight pill is required.";
 
-    if (!local.features || local.features.length < 3)
-      errs.features = "At least 3 feature rows are required.";
+    if (!local.features) errs.features = "Features list is required.";
     else if (local.features.length > 6)
       errs.features = "At most 6 feature rows are allowed.";
 
@@ -149,9 +148,9 @@ export default function LandingEditor() {
       <Divider />
 
       {/* Marquee Items */}
-      <Field label="Marquee Items" error={errors.marqueeItems}>
+      <Field label="Highlight Pills" error={errors.marqueeItems}>
         <p style={{ fontSize: 12, color: "var(--fg-faint)", marginBottom: 10 }}>
-          Scrolling text items on the landing page. At least 1 required.
+          Small pills shown under the hero (e.g. "Fresh", "Halal", "Seasonal"). At least 1 required.
         </p>
         <ListEditor
           items={local.marqueeItems || []}
@@ -197,7 +196,6 @@ export default function LandingEditor() {
             set("features", features);
           }}
           onRemove={() => {
-            if ((local.features || []).length <= 3) return;
             const features = local.features.filter((_, idx) => idx !== i);
             set("features", features);
           }}
@@ -213,7 +211,7 @@ export default function LandingEditor() {
             [features[i], features[i + 1]] = [features[i + 1], features[i]];
             set("features", features);
           }}
-          canRemove={(local.features || []).length > 3}
+          canRemove={true}
         />
       ))}
     </div>

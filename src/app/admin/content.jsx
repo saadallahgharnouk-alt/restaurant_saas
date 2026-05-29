@@ -2,155 +2,110 @@ import React from "react";
 import { Routes, Route, NavLink, Navigate } from "react-router-dom";
 import { useContent } from "../../lib/content-store";
 
-// Editor panels (will be built out in tasks #4–#9)
 import BrandingEditor from "./editors/BrandingEditor";
-import LandingEditor from "./editors/LandingEditor";
+import LandingEditor  from "./editors/LandingEditor";
 import LocationEditor from "./editors/LocationEditor";
-import ContactEditor from "./editors/ContactEditor";
+import ContactEditor  from "./editors/ContactEditor";
 import CategoryEditor from "./editors/CategoryEditor";
-import ItemEditor from "./editors/ItemEditor";
+import ItemEditor     from "./editors/ItemEditor";
 
 /* ───────────────────────────────────────────────────────────────
-   CMS Shell — /admin/content
-   Left sidebar section nav + status banner + main editor area.
+   CMS shell — mounted under /admin/*
+   Sidebar with: Branding, Landing, Menu Categories, Menu Items,
+   Location, Contact. Status banner shows save/offline state.
    ─────────────────────────────────────────────────────────────── */
 
 const SECTIONS = [
-  { slug: "branding", label: "Branding" },
-  { slug: "landing", label: "Landing" },
-  { slug: "location", label: "Location" },
-  { slug: "contact", label: "Contact" },
-  { slug: "menu-categories", label: "Menu Categories" },
-  { slug: "menu-items", label: "Menu Items" },
+  { slug: "branding",        label: "Branding",        hint: "Name, tagline, logo" },
+  { slug: "landing",         label: "Home page",       hint: "Hero text, photos, sections" },
+  { slug: "menu-categories", label: "Menu categories", hint: "Starters, mains, drinks…" },
+  { slug: "menu-items",      label: "Dishes",          hint: "Name, photo, price, description" },
+  { slug: "location",        label: "Location & map",  hint: "Address & Google Maps" },
+  { slug: "contact",         label: "Contact",         hint: "Phone, WhatsApp, hours" },
 ];
 
 const STATUS_LABELS = {
-  loaded: "Saved",
-  saved: "Saved",
-  saving: "Saving…",
+  loaded:  "All saved",
+  saved:   "All saved",
+  saving:  "Saving…",
   unsaved: "Unsaved changes",
-  offline: "Offline — using local backup",
+  offline: "Offline — saved locally only",
 };
 
 const STATUS_COLORS = {
-  loaded: "var(--sage, #4FD9B2)",
-  saved: "var(--sage, #4FD9B2)",
-  saving: "var(--marigold, #FFB84D)",
-  unsaved: "var(--marigold, #FFB84D)",
-  offline: "var(--ember, #FF6B1F)",
+  loaded:  "var(--sage)",
+  saved:   "var(--sage)",
+  saving:  "var(--marigold)",
+  unsaved: "var(--marigold)",
+  offline: "var(--ember)",
 };
 
 export default function ContentCMS() {
   const { status } = useContent();
 
   return (
-    <div className="page" style={{ padding: "32px var(--page-gutter)" }}>
-      {/* Status banner */}
-      <div
-        style={{
-          display: "flex",
-          alignItems: "center",
-          gap: 10,
-          marginBottom: 28,
-          padding: "10px 16px",
-          background: "var(--surface, #15151A)",
-          border: "1px solid var(--rule, rgba(255,255,255,0.07))",
-          borderRadius: 12,
-        }}
-      >
-        <span
-          style={{
-            width: 8,
-            height: 8,
-            borderRadius: "50%",
-            background: STATUS_COLORS[status] || STATUS_COLORS.loaded,
-            boxShadow: `0 0 8px ${STATUS_COLORS[status] || STATUS_COLORS.loaded}`,
-            flexShrink: 0,
-          }}
-        />
-        <span
-          style={{
-            fontFamily: "var(--font-mono)",
-            fontSize: 12,
-            letterSpacing: "0.08em",
-            color: "var(--fg-mid, #A5A2A0)",
-          }}
-        >
-          {STATUS_LABELS[status] || "Saved"}
-        </span>
-      </div>
+    <div className="cms">
+      {/* Header strip */}
+      <header className="cms-header">
+        <div>
+          <span className="eyebrow">Manager</span>
+          <h1 className="cms-title">Edit your website</h1>
+          <p className="cms-sub">
+            Change any text, photo, dish or detail. Hit <strong>Save</strong> in each section to publish.
+          </p>
+        </div>
+        <div className="cms-status" data-status={status || "loaded"}>
+          <span
+            className="cms-status-dot"
+            style={{
+              background: STATUS_COLORS[status] || STATUS_COLORS.loaded,
+              boxShadow: `0 0 8px ${STATUS_COLORS[status] || STATUS_COLORS.loaded}`,
+            }}
+          />
+          <span>{STATUS_LABELS[status] || "All saved"}</span>
+        </div>
+      </header>
 
-      {/* Main layout: sidebar + editor */}
-      <div
-        style={{
-          display: "grid",
-          gridTemplateColumns: "220px 1fr",
-          gap: 32,
-          alignItems: "start",
-        }}
-      >
-        {/* Left-hand section nav */}
-        <nav
-          style={{
-            display: "flex",
-            flexDirection: "column",
-            gap: 4,
-            position: "sticky",
-            top: "calc(var(--nav-h, 72px) + 24px)",
-          }}
-        >
+      <div className="cms-grid">
+        {/* Sidebar */}
+        <nav className="cms-sidebar" aria-label="CMS sections">
           {SECTIONS.map((s) => (
             <NavLink
               key={s.slug}
-              to={`/admin/content/${s.slug}`}
+              to={`/admin/${s.slug}`}
               className={({ isActive }) =>
                 `cms-nav-link${isActive ? " cms-nav-link--active" : ""}`
               }
-              style={({ isActive }) => ({
-                display: "block",
-                padding: "10px 14px",
-                borderRadius: 10,
-                fontSize: 14,
-                fontWeight: 500,
-                color: isActive
-                  ? "var(--fg, #F4F1EA)"
-                  : "var(--fg-mid, #A5A2A0)",
-                background: isActive
-                  ? "var(--surface-2, #1C1C22)"
-                  : "transparent",
-                border: isActive
-                  ? "1px solid var(--rule-strong, rgba(255,255,255,0.15))"
-                  : "1px solid transparent",
-                transition: "all 0.2s ease",
-                textDecoration: "none",
-              })}
             >
-              {s.label}
+              <span className="cms-nav-link-label">{s.label}</span>
+              <span className="cms-nav-link-hint">{s.hint}</span>
             </NavLink>
           ))}
         </nav>
 
-        {/* Editor area */}
-        <div
-          style={{
-            minHeight: 400,
-            background: "var(--surface, #15151A)",
-            border: "1px solid var(--rule, rgba(255,255,255,0.07))",
-            borderRadius: 16,
-            padding: 28,
-          }}
-        >
+        {/* Editor pane */}
+        <section className="cms-pane">
           <Routes>
-            <Route index element={<Navigate to="branding" replace />} />
-            <Route path="branding" element={<BrandingEditor />} />
-            <Route path="landing" element={<LandingEditor />} />
-            <Route path="location" element={<LocationEditor />} />
-            <Route path="contact" element={<ContactEditor />} />
-            <Route path="menu-categories" element={<CategoryEditor />} />
-            <Route path="menu-items" element={<ItemEditor />} />
+            <Route index                        element={<Navigate to="branding" replace />} />
+            <Route path="branding"              element={<BrandingEditor />} />
+            <Route path="landing"               element={<LandingEditor />} />
+            <Route path="menu-categories"       element={<CategoryEditor />} />
+            <Route path="menu-items"            element={<ItemEditor />} />
+            <Route path="location"              element={<LocationEditor />} />
+            <Route path="contact"               element={<ContactEditor />} />
+            {/* Backward-compat for old /admin/content/* deep links */}
+            <Route path="content"               element={<Navigate to="/admin/branding" replace />} />
+            <Route path="content/:section"      element={<RedirectFromOldPath />} />
+            <Route path="*"                     element={<Navigate to="branding" replace />} />
           </Routes>
-        </div>
+        </section>
       </div>
     </div>
   );
+}
+
+/** Redirect /admin/content/<x> → /admin/<x> for any old links */
+function RedirectFromOldPath() {
+  const segment = window.location.pathname.split("/").pop();
+  return <Navigate to={`/admin/${segment}`} replace />;
 }

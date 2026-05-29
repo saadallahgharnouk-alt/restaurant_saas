@@ -1,135 +1,69 @@
-# RestauHub — Restaurant OS
+# Restaurant Site
 
-A modern, single-page restaurant management app: **QR menus**, live orders, a
-kitchen display board, and analytics — all in one lightweight dashboard.
-Guests scan a printed QR code at their table, the menu opens on their phone,
-and their order flies straight to the kitchen.
+A modern restaurant website with a built-in **manager edit screen**. The
+owner can change every text, photo, dish, address, phone number and
+opening hour from the browser — no code required.
 
----
+## What's on the site
 
-## What's new in this rework
+| Path     | Page                                            |
+| -------- | ----------------------------------------------- |
+| `/`      | Public landing — hero, about, dish preview, map |
+| `/menu`  | Public menu — categories, dishes, search        |
+| `/admin` | Manager edit screen (login required)            |
 
-- **Rebrand**: new hex+bowl+steam logo set (SVG) and a tightened indigo
-  colour system. Favicon, dark navbar, OG card, everything refreshed.
-- **Consistent design system**: the entire app is now on the custom CSS
-  tokens in `App.css` — the old half-Tailwind pages have been rewritten so
-  every screen finally matches.
-- **🆕 QR Studio (`/qr`)**: admin page that generates a print-ready QR
-  card for each restaurant. Single / per-table / bulk modes, with a live
-  preview and a print stylesheet.
-- **🆕 Public scan menu (`/m/:restaurantId`)**: customer-facing, mobile-first
-  menu that the QR points at. No admin shell, sticky category bar, floating
-  cart CTA, slide-up drawer, offline-safe with a rich demo menu.
-- **Table-aware orders**: the scan URL can carry `?t=5` and the order POSTed
-  to the kitchen is tagged with `table_number`.
-- **Better admin dashboard**: 4 KPI cards, feature tiles, and a CTA that
-  deep-links into QR Studio.
+That's it. No table-side QR studio, no order kitchen board, no analytics.
 
----
+## Manager edit screen (`/admin`)
 
-## 🗺️ Route map
+Default login: `admin` / `admin` (override via `VITE_ADMIN_CREDENTIALS`).
 
-### Admin (inside `EnhancedLayout`)
+Sections the manager can edit:
 
-| Path                | Page                                             |
-|---------------------|--------------------------------------------------|
-| `/`                 | Welcome dashboard with feature tiles             |
-| `/restaurants`      | Partner directory (mock data)                    |
-| `/menu`             | Public-style menu with filters + floating cart   |
-| `/menu/manage`      | Admin menu management (add / 86 / edit items)    |
-| `/kitchen`          | Kitchen display system (KDS)                     |
-| `/order`            | Order cart with promo codes                      |
-| `/analytics`        | Revenue / top items / category mix               |
-| `/qr`               | **QR Studio** — generate and print QR menus      |
+- **Branding** — restaurant name, tagline, logo
+- **Home page** — hero headline + paragraph + photo, highlight pills,
+  feature rows (each with photo + title + body + bullets + optional CTA)
+- **Menu categories** — Starters / Mains / Desserts / etc., reorderable
+- **Dishes** — name, photo, price + currency (MAD / EUR / USD),
+  description, ingredient pills, hidden/visible toggle
+- **Location & map** — address + latitude/longitude (auto-generates a
+  Google Maps embed) or paste an embed URL directly
+- **Contact** — phone, WhatsApp number, WhatsApp greeting & button
+  label, opening hours per day
 
-### Public (no admin shell)
+Every field that takes an image has a built-in upload control
+(PNG/JPEG/WebP, max 2 MB).
 
-| Path                         | Page                                |
-|------------------------------|-------------------------------------|
-| `/m/:restaurantId`           | Public scan menu (whole restaurant) |
-| `/m/:restaurantId?t=5`       | Same, tagged for table #5           |
+## How it persists
 
----
+The CMS first tries to talk to the backend at `/api/content`. If the
+backend is unreachable, it falls back to **localStorage** in the
+manager's browser. Image uploads work the same way: the backend stores
+files under `backend/data/uploads/`, but if it's offline the image is
+embedded as a base64 data URI directly into the saved content.
 
-## 🔲 QR code flow
+This means **the site is fully runnable with the frontend alone**, which
+is great for static-host deploys (Vercel, Netlify, GitHub Pages). The
+backend only matters once you want photos to persist on a server
+instead of inside the manager's browser.
 
-```
-┌──────────────┐     ┌──────────────────┐     ┌─────────────────┐
-│  /qr studio  │──→  │  guest scans QR  │──→  │  /m/:id[?t=N]   │
-│  (admin)     │     │  (phone camera)  │     │  mobile menu    │
-└──────────────┘     └──────────────────┘     └────────┬────────┘
-                                                       │
-                                                       ▼
-                                            ┌──────────────────┐
-                                            │ POST /api/orders │
-                                            │ table_number: N  │
-                                            └──────────────────┘
-```
-
-1. Manager opens **`/qr`**, picks a restaurant, picks a mode
-   (Single / Per-table / Bulk), downloads a PNG or prints the whole sheet.
-2. Guest scans → their phone opens `/m/:restaurantId?t=5`.
-3. They pick items, tap "Send to kitchen", and the order hits the
-   `/api/orders` endpoint already tagged with the table number.
-
-The QR uses `qr-code-styling` with a rounded dot style, indigo corners, and
-the RestauHub mark embedded in the middle.
-
----
-
-## 🚀 Tech stack
-
-- **Frontend**: React 19, Vite, React Router 7, `qr-code-styling`
-- **Backend**: Node / Express 5 + PostgreSQL (`pg`)
-- **Styling**: custom CSS design tokens (no Tailwind, no framer-motion)
-- **Assets**: pure SVG logos + favicon
-
----
-
-## 🏃 Run it
+## Running locally
 
 ```bash
-# backend (port 5000)
-cd backend
-node server.js
-
-# frontend (port 5173)
+# 1. Install deps
 npm install
+
+# 2. (Optional) Start the CMS backend on :5000
+npm run server
+
+# 3. Start the frontend on :5173
 npm run dev
 ```
 
-Open `http://localhost:5173/` for the admin app, and
-`http://localhost:5173/m/1` to preview the customer scan page.
+Open `http://localhost:5173/` for the site, `/menu` for the menu, and
+`/admin` to log in and start editing.
 
-### Offline mode
+## Built with
 
-Both the admin app and the scan menu are **offline-safe**: if the backend
-isn't running, the UI falls back to mock restaurants and a built-in demo
-menu, so you can click through the whole flow without a DB.
-
----
-
-## 🗄️ Schema note
-
-Orders now carry an optional `table_number`. If your existing DB doesn't
-have this column yet, add it with:
-
-```sql
-ALTER TABLE "Orders" ADD COLUMN table_number INTEGER NULL;
-```
-
----
-
-## 🔌 API surface
-
-| Method | Path                            | Purpose                        |
-|--------|---------------------------------|--------------------------------|
-| `GET`  | `/api/restaurants`              | List all partner restaurants   |
-| `GET`  | `/api/restaurants/:id`          | Single restaurant (scan page)  |
-| `GET`  | `/api/menu/:restaurantId`       | Menu items for a restaurant    |
-| `GET`  | `/api/orders`                   | Recent orders (admin)          |
-| `POST` | `/api/orders`                   | Place an order (with `table_number`) |
-
----
-
-Made for fast, friendly service. Scan → tap → eat. 🍽️
+React 19 · Vite · React Router 7 · Express 5 · Multer · plain CSS
+(no Tailwind, no UI kit, no animation libraries).
