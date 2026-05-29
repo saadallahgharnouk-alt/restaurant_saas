@@ -14,7 +14,7 @@ const ACCEPTED_TYPES = ["image/png", "image/jpeg", "image/webp"];
 const MAX_SIZE = 2_097_152; // 2 MiB
 const API_BASE = import.meta.env?.VITE_API_URL || "http://localhost:5000";
 
-export default function MediaUpload({ value, onChange, label = "Upload Photo" }) {
+export default function MediaUpload({ value, onChange, label = "Upload Photo", compact = false }) {
   const inputRef = useRef(null);
   const [uploading, setUploading] = useState(false);
   const [error, setError] = useState("");
@@ -89,7 +89,7 @@ export default function MediaUpload({ value, onChange, label = "Upload Photo" })
   return (
     <div style={{ marginTop: 8 }}>
       {/* Preview */}
-      {value && (
+      {value && !compact && (
         <div style={{ marginBottom: 10, position: "relative", display: "inline-block" }}>
           <img
             src={value}
@@ -139,12 +139,12 @@ export default function MediaUpload({ value, onChange, label = "Upload Photo" })
             display: "inline-flex",
             alignItems: "center",
             gap: 6,
-            padding: "8px 14px",
+            padding: compact ? "5px 10px" : "8px 14px",
             borderRadius: 8,
             border: "1px solid var(--rule-strong, rgba(255,255,255,0.15))",
             background: "var(--surface, #15151A)",
             color: "var(--fg-mid, #A5A2A0)",
-            fontSize: 13,
+            fontSize: compact ? 12 : 13,
             fontWeight: 500,
             cursor: uploading ? "wait" : "pointer",
             opacity: uploading ? 0.6 : 1,
@@ -162,9 +162,11 @@ export default function MediaUpload({ value, onChange, label = "Upload Photo" })
           />
         </label>
 
-        <span style={{ fontSize: 11, color: "var(--fg-faint)", fontFamily: "var(--font-mono)" }}>
-          PNG, JPEG, WebP · max 2 MB
-        </span>
+        {!compact && (
+          <span style={{ fontSize: 11, color: "var(--fg-faint)", fontFamily: "var(--font-mono)" }}>
+            PNG, JPEG, WebP · max 2 MB
+          </span>
+        )}
       </div>
 
       {/* Error */}

@@ -4,7 +4,7 @@ import { useContent } from '../lib/content-store';
 import MapEmbed from '../components/MapEmbed';
 import WhatsAppCTA from '../components/WhatsAppCTA';
 
-/* ─── Fallback images (used when CMS images are empty) ─────────────────── */
+/* ─── Fallback images ──────────────────────────────────────────────────── */
 
 const FALLBACK_HERO =
   'https://images.unsplash.com/photo-1544025162-d76694265947?auto=format&fit=crop&w=1600&q=80';
@@ -12,11 +12,15 @@ const FALLBACK_FEATURE =
   'https://images.unsplash.com/photo-1559339352-11d035aa65de?auto=format&fit=crop&w=1400&q=80';
 const FALLBACK_DISH =
   'https://images.unsplash.com/photo-1546069901-ba9599a7e63c?auto=format&fit=crop&w=900&q=80';
+const FALLBACK_STORY =
+  'https://images.unsplash.com/photo-1559339352-11d035aa65de?auto=format&fit=crop&w=1400&q=80';
 
-const PLACE_ROW = (i) =>
-  i % 2 === 0
-    ? 'https://images.unsplash.com/photo-1559339352-11d035aa65de?auto=format&fit=crop&w=1400&q=80'
-    : 'https://images.unsplash.com/photo-1517248135467-4c7edcad34c4?auto=format&fit=crop&w=1400&q=80';
+const FEATURE_FALLBACKS = [
+  'https://images.unsplash.com/photo-1601050690597-df0568f70950?auto=format&fit=crop&w=1400&q=80',
+  'https://images.unsplash.com/photo-1517248135467-4c7edcad34c4?auto=format&fit=crop&w=1400&q=80',
+  'https://images.unsplash.com/photo-1565299624946-b28f40a0ae38?auto=format&fit=crop&w=1400&q=80',
+  'https://images.unsplash.com/photo-1414235077428-338989a2e8c0?auto=format&fit=crop&w=1400&q=80',
+];
 
 /* ──────────────────────────────────────────────────────────────────────── */
 
@@ -30,12 +34,15 @@ export default function Landing() {
   const menu     = content?.menu;
 
   const heroImage = landing?.heroImageUrl?.trim() || FALLBACK_HERO;
-  const features  = (landing?.features?.length >= 1) ? landing.features : null;
+  const story     = landing?.story;
+  const features  = landing?.features?.length ? landing.features : null;
+  const gallery   = (landing?.gallery || []).filter((u) => typeof u === 'string' && u.trim());
 
-  // Pick up to 3 active items to highlight on the landing
   const featuredDishes = useMemo(() => {
-    const items = (menu?.items || []).filter((it) => it.active !== false);
-    return items.slice(0, 3);
+    const items = (menu?.items || []).filter((it) => it.active !== false && it.photoUrl?.trim());
+    if (items.length >= 3) return items.slice(0, 3);
+    // Fall back to active items (with or without photos) if not enough have photos
+    return (menu?.items || []).filter((it) => it.active !== false).slice(0, 3);
   }, [menu]);
 
   return (
@@ -64,7 +71,7 @@ export default function Landing() {
 
             <ul className="hero-marquee">
               {(landing?.marqueeItems?.length ? landing.marqueeItems : ['Fresh', 'Seasonal', 'Halal'])
-                .slice(0, 6)
+                .slice(0, 8)
                 .map((m, i) => (
                   <li key={i}>{m}</li>
                 ))}
@@ -80,11 +87,32 @@ export default function Landing() {
         </div>
       </section>
 
+      {/* ─── Story / about ──────────────────────────────────────────────── */}
+      {story && (story.title || story.body) && (
+        <section className="story">
+          <div className="story-grid">
+            <div className="story-image">
+              <img src={story.imageUrl?.trim() || FALLBACK_STORY} alt="" loading="lazy" />
+            </div>
+            <div className="story-text">
+              {story.eyebrow && <span className="eyebrow">{story.eyebrow}</span>}
+              {story.title && <h2 className="story-title">{story.title}</h2>}
+              {story.body && <p className="story-body">{story.body}</p>}
+            </div>
+          </div>
+        </section>
+      )}
+
       {/* ─── About / Feature rows ───────────────────────────────────────── */}
       {features && (
         <section className="features">
           {features.map((f, i) => (
-            <FeatureRow key={i} feature={f} flip={i % 2 === 1} fallbackImage={PLACE_ROW(i)} />
+            <FeatureRow
+              key={i}
+              feature={f}
+              flip={i % 2 === 1}
+              fallbackImage={FEATURE_FALLBACKS[i % FEATURE_FALLBACKS.length]}
+            />
           ))}
         </section>
       )}
@@ -114,8 +142,32 @@ export default function Landing() {
         </section>
       )}
 
+      {/* ─── Gallery ────────────────────────────────────────────────────── */}
+      {gallery.length > 0 && (
+        <section className="gallery">
+          <header className="section-head">
+            <span className="eyebrow">A look around</span>
+            <h2 className="section-title">From our table to yours</h2>
+            <p className="section-sub">
+              Snapshots of the room, the kitchen and the food &mdash; updated as we go.
+            </p>
+          </header>
+
+          <div
+            className={`gallery-grid gallery-grid--${Math.min(gallery.length, 6)}`}
+            role="list"
+          >
+            {gallery.slice(0, 8).map((src, i) => (
+              <figure key={i} className="gallery-tile" role="listitem">
+                <img src={src} alt="" loading="lazy" />
+              </figure>
+            ))}
+          </div>
+        </section>
+      )}
+
       {/* ─── Find us ────────────────────────────────────────────────────── */}
-      <section className="find-us">
+      <section className="find-us" id="find-us">
         <header className="section-head">
           <span className="eyebrow">Find us</span>
           <h2 className="section-title">Visit our table</h2>
@@ -206,7 +258,7 @@ function FeatureRow({ feature, flip, fallbackImage }) {
   );
 }
 
-/* ─── DishCard (preview, simplified) ───────────────────────────────────── */
+/* ─── DishCard ─────────────────────────────────────────────────────────── */
 
 function DishCard({ dish }) {
   const photo = dish.photoUrl?.trim() || FALLBACK_DISH;
@@ -228,7 +280,7 @@ function DishCard({ dish }) {
   );
 }
 
-/* ─── Info block helper ────────────────────────────────────────────────── */
+/* ─── InfoBlock ────────────────────────────────────────────────────────── */
 
 function InfoBlock({ label, children }) {
   return (

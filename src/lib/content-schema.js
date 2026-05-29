@@ -107,6 +107,30 @@ function validateLanding(landing, basePath) {
     err = validateFeature(landing.features[i], `${basePath}.features[${i}]`);
     if (err) return err;
   }
+
+  // Story (optional but defaulted in DEFAULT_CONTENT)
+  if (landing.story !== undefined) {
+    if (!isObject(landing.story)) return fail(`${basePath}.story`, "must be an object");
+    err = validateString(landing.story.eyebrow, `${basePath}.story.eyebrow`, { min: 0, max: 80 });
+    if (err) return err;
+    err = validateString(landing.story.title, `${basePath}.story.title`, { min: 0, max: 140 });
+    if (err) return err;
+    err = validateString(landing.story.body, `${basePath}.story.body`, { min: 0, max: 1200 });
+    if (err) return err;
+    if (!isString(landing.story.imageUrl))
+      return fail(`${basePath}.story.imageUrl`, "must be a string");
+  }
+
+  // Gallery (optional, max 8 images)
+  if (landing.gallery !== undefined) {
+    if (!isArray(landing.gallery)) return fail(`${basePath}.gallery`, "must be an array");
+    if (landing.gallery.length > 8) return fail(`${basePath}.gallery`, "must have at most 8 items");
+    for (let i = 0; i < landing.gallery.length; i++) {
+      if (!isString(landing.gallery[i]))
+        return fail(`${basePath}.gallery[${i}]`, "must be a string");
+    }
+  }
+
   return null;
 }
 
@@ -217,51 +241,100 @@ export function validate(content) {
 
 export const DEFAULT_CONTENT = {
   branding: {
-    restaurantName: "RestauHub",
+    restaurantName: "Dar Saffron",
     tagline: "Modern Moroccan Kitchen",
     logoUrl: "",
   },
   landing: {
-    heroHeadline: "Flavors of Morocco, served with soul.",
+    heroHeadline: "Flavours of Morocco, served with soul.",
     heroLead:
-      "From the bustling souks of Marrakech to your plate \u2014 we bring authentic Moroccan recipes crafted with locally-sourced spices, slow-cooked traditions, and a modern touch that celebrates every bite.",
-    heroImageUrl: "",
-    marqueeItems: ["Tagine", "Couscous", "Pastilla", "Harira", "Msemen", "Mint Tea"],
+      "From the spice markets of Marrakech to your plate. Slow-cooked tagines, hand-rolled couscous, fresh-baked breads and a glass of mint tea waiting at the door. We can't wait to host you.",
+    heroImageUrl:
+      "https://images.unsplash.com/photo-1544025162-d76694265947?auto=format&fit=crop&w=1600&q=80",
+    marqueeItems: [
+      "Tagine",
+      "Couscous",
+      "Pastilla",
+      "Harira",
+      "Msemen",
+      "Mint Tea",
+      "Halal",
+      "Fresh daily",
+    ],
+    story: {
+      eyebrow: "Our story",
+      title: "Three generations of recipes, one warm room.",
+      body:
+        "Dar Saffron started as a family kitchen in the medina, where Grandma Fatima would feed the whole street on Friday afternoons. Today we're still cooking her recipes \u2014 the same lemon-and-olive chicken tagine, the same hand-rolled couscous on Friday, the same pot of mint tea bubbling at the back. The room is bigger now, the saffron is just as good.",
+      imageUrl:
+        "https://images.unsplash.com/photo-1559339352-11d035aa65de?auto=format&fit=crop&w=1400&q=80",
+    },
     features: [
       {
-        eyebrow: "Our Menu",
-        title: "A journey through Moroccan flavors",
-        body: "Explore our curated selection of traditional dishes reimagined for the modern palate, from slow-simmered tagines to hand-rolled couscous.",
+        eyebrow: "The kitchen",
+        title: "Slow food, the way it should be.",
+        body:
+          "Every tagine simmers for at least four hours. Our bread is baked twice a day in a wood-fired oven. The harissa is pounded by hand. We don't take shortcuts because the food doesn't taste right when you do.",
         bullets: [
-          { strong: "Seasonal", rest: "ingredients sourced from local farms" },
-          { strong: "Halal", rest: "certified preparation for every dish" },
+          { strong: "Daily", rest: "spices ground in-house, never pre-mixed" },
+          { strong: "Halal", rest: "certified, fully traceable supply chain" },
+          { strong: "Seasonal", rest: "vegetables from farms within 80 km" },
         ],
-        ctaLabel: "View Menu",
+        ctaLabel: "See the menu",
         ctaHref: "/menu",
-        imageUrl: "",
+        imageUrl:
+          "https://images.unsplash.com/photo-1601050690597-df0568f70950?auto=format&fit=crop&w=1400&q=80",
       },
       {
-        eyebrow: "Service",
-        title: "Seamless ordering, faster service",
-        body: "Scan the QR code at your table, browse the menu, and place your order instantly \u2014 no waiting, no friction, just great food arriving fast.",
+        eyebrow: "The room",
+        title: "Hand-painted zellige, low lanterns, room to breathe.",
+        body:
+          "We built the room the way we'd want to eat in one. Banquettes deep enough for a long lunch, music low enough to talk over, light warm enough to make everyone look their best. Bring your in-laws. Bring a first date. Bring yourself and a book.",
         bullets: [
-          { strong: "QR-powered", rest: "table ordering in seconds" },
-          { strong: "Real-time", rest: "kitchen display for faster prep" },
+          { strong: "60 seats", rest: "indoor, plus a 20-seat rooftop terrace" },
+          { strong: "Private", rest: "back room available for groups up to 16" },
+          { strong: "Open", rest: "every day from lunch through late dinner" },
         ],
-        ctaLabel: "How It Works",
-        ctaHref: "/qr",
-        imageUrl: "",
+        imageUrl:
+          "https://images.unsplash.com/photo-1517248135467-4c7edcad34c4?auto=format&fit=crop&w=1400&q=80",
       },
       {
-        eyebrow: "Experience",
-        title: "Where tradition meets modern dining",
-        body: "Step into a space that blends Moroccan craftsmanship with contemporary design \u2014 warm zellige tiles, handwoven textiles, and the aroma of cumin and saffron in the air.",
+        eyebrow: "Order ahead",
+        title: "Tap a button. Pick it up. Done.",
+        body:
+          "Don't feel like cooking tonight? Message us on WhatsApp with what you'd like and we'll have it boxed up and ready when you arrive \u2014 usually in under thirty minutes. No app to download, no account to create.",
         bullets: [
-          { strong: "Private", rest: "dining rooms for special occasions" },
-          { strong: "Rooftop", rest: "terrace with sunset views" },
+          { strong: "WhatsApp", rest: "ordering with a real person on the other end" },
+          { strong: "Pickup", rest: "ready in 25-35 minutes, most days" },
+          { strong: "Family", rest: "platters that feed 4-6 with one click" },
         ],
-        imageUrl: "",
+        ctaLabel: "Message us now",
+        ctaHref: "/menu",
+        imageUrl:
+          "https://images.unsplash.com/photo-1565299624946-b28f40a0ae38?auto=format&fit=crop&w=1400&q=80",
       },
+      {
+        eyebrow: "Visit us",
+        title: "We're easier to find than you think.",
+        body:
+          "Two minutes from the tram stop, five minutes from the parking garage on Rue Mohamed V. The blue door with the lantern above it is us. Walk in, take a deep breath, you're already at the table.",
+        bullets: [
+          { strong: "Walk-ins", rest: "always welcome \u2014 reservations recommended on weekends" },
+          { strong: "Step-free", rest: "entry and accessible bathroom" },
+        ],
+        ctaLabel: "Get directions",
+        ctaHref: "#find-us",
+        imageUrl:
+          "https://images.unsplash.com/photo-1414235077428-338989a2e8c0?auto=format&fit=crop&w=1400&q=80",
+      },
+    ],
+    gallery: [
+      "https://images.unsplash.com/photo-1546069901-ba9599a7e63c?auto=format&fit=crop&w=900&q=80",
+      "https://images.unsplash.com/photo-1539136788836-5699e78bfc75?auto=format&fit=crop&w=900&q=80",
+      "https://images.unsplash.com/photo-1565958011703-44f9829ba187?auto=format&fit=crop&w=900&q=80",
+      "https://images.unsplash.com/photo-1473093295043-cdd812d0e601?auto=format&fit=crop&w=900&q=80",
+      "https://images.unsplash.com/photo-1504674900247-0877df9cc836?auto=format&fit=crop&w=900&q=80",
+      "https://images.unsplash.com/photo-1432139509613-5c4255815697?auto=format&fit=crop&w=900&q=80",
     ],
   },
   location: {
@@ -301,7 +374,7 @@ export const DEFAULT_CONTENT = {
         priceCents: 3500,
         currency: "MAD",
         ingredients: ["Tomatoes", "Lentils", "Chickpeas", "Cilantro", "Lemon"],
-        photoUrl: "",
+        photoUrl: "https://images.unsplash.com/photo-1547592180-85f173990554?auto=format&fit=crop&w=900&q=80",
         active: true,
       },
       {
@@ -312,7 +385,7 @@ export const DEFAULT_CONTENT = {
         priceCents: 4200,
         currency: "MAD",
         ingredients: ["Phyllo dough", "Goat cheese", "Herbs", "Honey"],
-        photoUrl: "",
+        photoUrl: "https://images.unsplash.com/photo-1541592106381-b31e9677c0e5?auto=format&fit=crop&w=900&q=80",
         active: true,
       },
       {
@@ -323,7 +396,7 @@ export const DEFAULT_CONTENT = {
         priceCents: 3000,
         currency: "MAD",
         ingredients: ["Eggplant", "Tomatoes", "Garlic", "Cumin", "Olive oil"],
-        photoUrl: "",
+        photoUrl: "https://images.unsplash.com/photo-1604908176997-125f25cc6f3d?auto=format&fit=crop&w=900&q=80",
         active: true,
       },
       {
@@ -334,7 +407,7 @@ export const DEFAULT_CONTENT = {
         priceCents: 8500,
         currency: "MAD",
         ingredients: ["Chicken", "Preserved lemons", "Olives", "Saffron", "Couscous"],
-        photoUrl: "",
+        photoUrl: "https://images.unsplash.com/photo-1574484284002-952d92456975?auto=format&fit=crop&w=900&q=80",
         active: true,
       },
       {
@@ -345,7 +418,7 @@ export const DEFAULT_CONTENT = {
         priceCents: 12000,
         currency: "MAD",
         ingredients: ["Lamb", "Raisins", "Almonds", "Honey", "Ras el hanout"],
-        photoUrl: "",
+        photoUrl: "https://images.unsplash.com/photo-1544025162-d76694265947?auto=format&fit=crop&w=900&q=80",
         active: true,
       },
       {
@@ -356,7 +429,7 @@ export const DEFAULT_CONTENT = {
         priceCents: 7000,
         currency: "MAD",
         ingredients: ["Couscous", "Carrots", "Zucchini", "Turnips", "Chickpeas"],
-        photoUrl: "",
+        photoUrl: "https://images.unsplash.com/photo-1512058564366-18510be2db19?auto=format&fit=crop&w=900&q=80",
         active: true,
       },
       {
@@ -367,7 +440,7 @@ export const DEFAULT_CONTENT = {
         priceCents: 4500,
         currency: "MAD",
         ingredients: ["Warqa pastry", "Milk", "Almonds", "Cinnamon", "Sugar"],
-        photoUrl: "",
+        photoUrl: "https://images.unsplash.com/photo-1488477181946-6428a0291777?auto=format&fit=crop&w=900&q=80",
         active: true,
       },
       {
@@ -378,7 +451,7 @@ export const DEFAULT_CONTENT = {
         priceCents: 3800,
         currency: "MAD",
         ingredients: ["Sesame", "Honey", "Orange blossom water", "Flour"],
-        photoUrl: "",
+        photoUrl: "https://images.unsplash.com/photo-1558961363-fa8fdf82db35?auto=format&fit=crop&w=900&q=80",
         active: true,
       },
       {
@@ -389,7 +462,7 @@ export const DEFAULT_CONTENT = {
         priceCents: 2500,
         currency: "MAD",
         ingredients: ["Green tea", "Spearmint", "Sugar"],
-        photoUrl: "",
+        photoUrl: "https://images.unsplash.com/photo-1565799912018-d24d6e6f7d12?auto=format&fit=crop&w=900&q=80",
         active: true,
       },
       {
@@ -400,7 +473,7 @@ export const DEFAULT_CONTENT = {
         priceCents: 3000,
         currency: "MAD",
         ingredients: ["Avocado", "Milk", "Honey"],
-        photoUrl: "",
+        photoUrl: "https://images.unsplash.com/photo-1638176066740-87bcec92daed?auto=format&fit=crop&w=900&q=80",
         active: true,
       },
       {
@@ -411,7 +484,7 @@ export const DEFAULT_CONTENT = {
         priceCents: 2000,
         currency: "MAD",
         ingredients: ["Oranges"],
-        photoUrl: "",
+        photoUrl: "https://images.unsplash.com/photo-1613478223719-2ab802602423?auto=format&fit=crop&w=900&q=80",
         active: true,
       },
     ],

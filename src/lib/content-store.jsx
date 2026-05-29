@@ -3,6 +3,7 @@ import { validate, DEFAULT_CONTENT, serialize, assertIntegrity } from "./content
 
 const STORAGE_KEY = "restauhub.cms.v1";
 const API_BASE = import.meta.env.VITE_API_URL || "http://localhost:5000";
+const API_TIMEOUT_MS = 2500;
 
 // ─── Context ─────────────────────────────────────────────────────────────────
 
@@ -10,16 +11,6 @@ const ContentContext = createContext(null);
 
 // ─── Deep-set utility ────────────────────────────────────────────────────────
 
-/**
- * Deep-set a value at a dot-notation or array path on a cloned object.
- * e.g. deepSet(obj, "branding.restaurantName", "New Name")
- * e.g. deepSet(obj, "menu.items[0].name", "Tagine")
- *
- * @param {object} obj - source object (will NOT be mutated)
- * @param {string|string[]} path - dot-notation path or array of keys
- * @param {*} value - value to set
- * @returns {object} - new object with value set
- */
 function deepSet(obj, path, value) {
   const clone = structuredClone(obj);
   const keys = typeof path === "string" ? parsePath(path) : path;
@@ -27,7 +18,6 @@ function deepSet(obj, path, value) {
   for (let i = 0; i < keys.length - 1; i++) {
     const key = keys[i];
     if (current[key] === undefined || current[key] === null) {
-      // Determine if next key is numeric index
       current[key] = /^\d+$/.test(keys[i + 1]) ? [] : {};
     }
     current = current[key];
@@ -36,20 +26,14 @@ function deepSet(obj, path, value) {
   return clone;
 }
 
-/**
- * Parse a dot-notation path like "menu.items[0].name" into ["menu", "items", "0", "name"]
- */
 function parsePath(path) {
   const parts = [];
   const segments = path.split(".");
   for (const segment of segments) {
-    // Handle array notation: items[0] → "items", "0"
     const match = segment.match(/^([^[]+)(?:\[(\d+)\])?$/);
     if (match) {
       parts.push(match[1]);
-      if (match[2] !== undefined) {
-        parts.push(match[2]);
-      }
+      if (match[2] !== undefined) parts.push(match[2]);
     } else {
       parts.push(segment);
     }
@@ -57,147 +41,144 @@ function parsePath(path) {
   return parts;
 }
 
-// ─── Helper to load from localStorage ────────────────────────────────────────
+// ─── Initial content (sync) ──────────────────────────────────────────────────
 
-function loadFromLocalStorage() {
+/**
+ * Read initial content **synchronously** so the provider never starts in a
+ * null state. This kills the entire class of "infinite loading spinner"
+ * issues in editors, and also avoids problems with React StrictMode
+ * double-invoking effects in development.
+ *
+ * Priority: localStorage → DEFAULT_CONTENT.
+ * The optional API fetch happens later as an overlay.
+ */
+function loadInitialContent() {
   try {
-    const raw = localStorage.getItem(STORAGE_KEY);
+    const raw = typeof localStorage !== "undefined" && localStorage.getItem(STORAGE_KEY);
     if (raw) {
       const parsed = JSON.parse(raw);
       const result = validate(parsed);
       if (result.valid) return result.value;
     }
   } catch {
-    // ignore parse errors
+    /* ignore */
   }
-  return null;
+  return structuredClone(DEFAULT_CONTENT);
+}
+
+/** Async fetch the API with a hard timeout so we never hang on a dead host. */
+async function fetchApiContent() {
+  const controller = new AbortController();
+  const timer = setTimeout(() => controller.abort(), API_TIMEOUT_MS);
+  try {
+    const res = await fetch(`${API_BASE}/api/content`, {
+      method: "GET",
+      headers: { Accept: "application/json" },
+      signal: controller.signal,
+    });
+    clearTimeout(timer);
+    if (!res.ok) return null;
+    const data = await res.json();
+    const result = validate(data);
+    return result.valid ? result.value : null;
+  } catch {
+    clearTimeout(timer);
+    return null;
+  }
 }
 
 // ─── Provider ────────────────────────────────────────────────────────────────
 
 export function ContentProvider({ children }) {
-  const [content, setContent] = useState(null);
+  // 1. Initialise synchronously — content is NEVER null after this.
+  const [content, setContent] = useState(loadInitialContent);
   const [status, setStatus] = useState("loaded");
-  const initializedRef = useRef(false);
+  const apiAttemptedRef = useRef(false);
 
-  // Load content on mount
+  // 2. Try to overlay with API content (best-effort, non-blocking).
   useEffect(() => {
-    if (initializedRef.current) return;
-    initializedRef.current = true;
+    if (apiAttemptedRef.current) return;
+    apiAttemptedRef.current = true;
 
     let cancelled = false;
-
-    async function init() {
-      // Try API first
+    fetchApiContent().then((apiContent) => {
+      if (cancelled || !apiContent) return;
+      // Only overlay if API content is materially different from what we have
       try {
-        const res = await fetch(`${API_BASE}/api/content`, {
-          method: "GET",
-          headers: { "Accept": "application/json" },
-        });
-        if (res.ok) {
-          const data = await res.json();
-          const result = validate(data);
-          if (result.valid) {
-            if (!cancelled) {
-              setContent(result.value);
-              setStatus("loaded");
-            }
-            return;
-          }
+        const localJson = serialize(content);
+        const apiJson = serialize(apiContent);
+        if (localJson !== apiJson) {
+          setContent(apiContent);
         }
       } catch {
-        // network error — fall through
+        setContent(apiContent);
       }
+    });
 
-      // Fallback: localStorage
-      const local = loadFromLocalStorage();
-      if (local) {
-        if (!cancelled) {
-          setContent(local);
-          setStatus("loaded");
-        }
-        return;
-      }
-
-      // Final fallback: DEFAULT_CONTENT
-      if (!cancelled) {
-        setContent(structuredClone(DEFAULT_CONTENT));
-        setStatus("loaded");
-      }
-    }
-
-    init();
-
-    return () => {
-      cancelled = true;
-    };
+    return () => { cancelled = true; };
+    // We intentionally don't include `content` in deps — we want to fetch
+    // the API exactly once at mount to overlay the initial sync content.
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
-  // ─── updateContent ───────────────────────────────────────────────────────
+  // ─── updateContent ────────────────────────────────────────────────────────
 
   const updateContent = useCallback((path, value) => {
-    setContent((prev) => {
-      if (!prev) return prev;
-      const updated = deepSet(prev, path, value);
-      return updated;
-    });
+    setContent((prev) => (prev ? deepSet(prev, path, value) : prev));
     setStatus("unsaved");
   }, []);
 
-  // ─── saveContent ─────────────────────────────────────────────────────────
+  /** Replace content wholesale — used by editors that want full control. */
+  const replaceContent = useCallback((next) => {
+    setContent(next);
+    setStatus("unsaved");
+  }, []);
+
+  // ─── saveContent ──────────────────────────────────────────────────────────
+
+  // Keep a ref to current content so saveContent always has latest
+  const contentRef = useRef(content);
+  useEffect(() => { contentRef.current = content; }, [content]);
 
   const saveContent = useCallback(async () => {
+    const currentContent = contentRef.current;
+    if (!currentContent) return;
+
     setStatus("saving");
 
-    const currentContent = contentRef.current;
-    if (!currentContent) {
-      setStatus("loaded");
-      return;
-    }
-
-    // Run integrity checks before persisting
     const integrity = assertIntegrity(currentContent);
     if (!integrity.ok) {
       console.warn("[Content_Store] Integrity check failed before save:", integrity.errors);
-      // Still allow save (data may be in-progress), but log for debugging
     }
 
     const json = serialize(currentContent);
 
+    // Always persist locally first — this is the user's source of truth.
+    try { localStorage.setItem(STORAGE_KEY, json); } catch { /* quota? */ }
+
+    // Best-effort sync to backend.
     try {
+      const controller = new AbortController();
+      const timer = setTimeout(() => controller.abort(), API_TIMEOUT_MS);
       const res = await fetch(`${API_BASE}/api/content`, {
         method: "PUT",
         headers: { "Content-Type": "application/json" },
         body: json,
+        signal: controller.signal,
       });
-
-      if (res.ok) {
-        // Persist to localStorage as well
-        localStorage.setItem(STORAGE_KEY, json);
-        setStatus("saved");
-      } else {
-        // Non-2xx: persist to localStorage, mark offline
-        localStorage.setItem(STORAGE_KEY, json);
-        setStatus("offline");
-      }
+      clearTimeout(timer);
+      setStatus(res.ok ? "saved" : "offline");
     } catch {
-      // Network error: persist to localStorage, mark offline
-      localStorage.setItem(STORAGE_KEY, json);
       setStatus("offline");
     }
   }, []);
 
-  // Keep a ref to current content so saveContent always has latest
-  const contentRef = useRef(content);
-  useEffect(() => {
-    contentRef.current = content;
-  }, [content]);
-
-  // ─── Context value ───────────────────────────────────────────────────────
+  // ─── Context value ────────────────────────────────────────────────────────
 
   const contextValue = {
     content,
     updateContent,
+    replaceContent,
     saveContent,
     status,
   };
@@ -211,14 +192,8 @@ export function ContentProvider({ children }) {
 
 // ─── Hook ────────────────────────────────────────────────────────────────────
 
-/**
- * Access CMS content and operations.
- * @returns {{ content: object|null, updateContent: (path: string, value: any) => void, saveContent: () => Promise<void>, status: "loaded"|"saving"|"saved"|"unsaved"|"offline" }}
- */
 export function useContent() {
   const ctx = useContext(ContentContext);
-  if (ctx === null) {
-    throw new Error("useContent must be used within a ContentProvider");
-  }
+  if (ctx === null) throw new Error("useContent must be used within a ContentProvider");
   return ctx;
 }

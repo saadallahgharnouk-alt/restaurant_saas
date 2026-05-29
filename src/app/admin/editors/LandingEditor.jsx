@@ -147,6 +147,82 @@ export default function LandingEditor() {
 
       <Divider />
 
+      {/* ─── Story section ─────────────────────────────────────────────── */}
+      <div style={{ marginBottom: 12 }}>
+        <label style={{ fontFamily: "var(--font-mono)", fontSize: 11, letterSpacing: "0.12em", textTransform: "uppercase", color: "var(--fg-faint)" }}>
+          Our Story Section
+        </label>
+        <p style={{ fontSize: 12, color: "var(--fg-faint)", marginTop: 4 }}>
+          A short "about us" block under the hero. Leave the title and body blank to hide it.
+        </p>
+      </div>
+
+      <div style={{ padding: 20, marginBottom: 24, background: "var(--surface-2)", border: "1px solid var(--rule)", borderRadius: 14 }}>
+        <SmallField label="Eyebrow">
+          <input
+            className="input"
+            value={local.story?.eyebrow || ""}
+            onChange={(e) => set("story", { ...(local.story || {}), eyebrow: e.target.value })}
+            placeholder="e.g. Our story"
+            maxLength={80}
+          />
+        </SmallField>
+
+        <SmallField label="Title">
+          <input
+            className="input"
+            value={local.story?.title || ""}
+            onChange={(e) => set("story", { ...(local.story || {}), title: e.target.value })}
+            placeholder="e.g. Three generations of recipes."
+            maxLength={140}
+          />
+        </SmallField>
+
+        <SmallField label="Body">
+          <textarea
+            className="input"
+            value={local.story?.body || ""}
+            onChange={(e) => set("story", { ...(local.story || {}), body: e.target.value })}
+            rows={5}
+            style={{ resize: "vertical", minHeight: 110 }}
+            placeholder="Tell visitors a little about your restaurant — where it started, who's in the kitchen, what makes it yours."
+            maxLength={1200}
+          />
+        </SmallField>
+
+        <SmallField label="Image">
+          <input
+            className="input"
+            value={local.story?.imageUrl || ""}
+            onChange={(e) => set("story", { ...(local.story || {}), imageUrl: e.target.value })}
+            placeholder="https://... or upload below"
+          />
+          <MediaUpload
+            value={local.story?.imageUrl || ""}
+            onChange={(url) => set("story", { ...(local.story || {}), imageUrl: url })}
+            label="Upload story image"
+          />
+        </SmallField>
+      </div>
+
+      <Divider />
+
+      {/* ─── Gallery section ───────────────────────────────────────────── */}
+      <div style={{ marginBottom: 12 }}>
+        <label style={{ fontFamily: "var(--font-mono)", fontSize: 11, letterSpacing: "0.12em", textTransform: "uppercase", color: "var(--fg-faint)" }}>
+          Photo Gallery ({(local.gallery || []).length}/8)
+        </label>
+        <p style={{ fontSize: 12, color: "var(--fg-faint)", marginTop: 4 }}>
+          A grid of photos from your restaurant — the room, the food, the team. Up to 8 images.
+        </p>
+      </div>
+      <GalleryEditor
+        images={local.gallery || []}
+        onChange={(images) => set("gallery", images)}
+      />
+
+      <Divider />
+
       {/* Marquee Items */}
       <Field label="Highlight Pills" error={errors.marqueeItems}>
         <p style={{ fontSize: 12, color: "var(--fg-faint)", marginBottom: 10 }}>
@@ -324,6 +400,115 @@ function BulletsEditor({ bullets, onChange }) {
           onClick={() => onChange([...bullets, { strong: "", rest: "" }])}
         >
           + Bullet
+        </button>
+      )}
+    </div>
+  );
+}
+
+/* ─── Gallery Editor ──────────────────────────────────────────────────────── */
+
+function GalleryEditor({ images, onChange }) {
+  function update(i, value) {
+    const next = [...images];
+    next[i] = value;
+    onChange(next);
+  }
+  function remove(i) {
+    onChange(images.filter((_, idx) => idx !== i));
+  }
+  function move(i, delta) {
+    const j = i + delta;
+    if (j < 0 || j >= images.length) return;
+    const next = [...images];
+    [next[i], next[j]] = [next[j], next[i]];
+    onChange(next);
+  }
+  function add() {
+    if (images.length >= 8) return;
+    onChange([...images, ""]);
+  }
+
+  return (
+    <div style={{ display: "flex", flexDirection: "column", gap: 12 }}>
+      {images.map((src, i) => (
+        <div
+          key={i}
+          style={{
+            display: "grid",
+            gridTemplateColumns: "84px 1fr auto",
+            gap: 12,
+            alignItems: "center",
+            padding: 12,
+            background: "var(--surface-2)",
+            border: "1px solid var(--rule)",
+            borderRadius: 12,
+          }}
+        >
+          <div
+            style={{
+              width: 84,
+              height: 64,
+              borderRadius: 8,
+              overflow: "hidden",
+              background: "var(--surface)",
+              border: "1px solid var(--rule)",
+            }}
+          >
+            {src?.trim() ? (
+              <img
+                src={src}
+                alt=""
+                style={{ width: "100%", height: "100%", objectFit: "cover", display: "block" }}
+              />
+            ) : (
+              <div
+                style={{
+                  width: "100%",
+                  height: "100%",
+                  display: "grid",
+                  placeItems: "center",
+                  fontSize: 11,
+                  color: "var(--fg-faint)",
+                  fontFamily: "var(--font-mono)",
+                }}
+              >
+                no img
+              </div>
+            )}
+          </div>
+
+          <div style={{ display: "flex", flexDirection: "column", gap: 6 }}>
+            <input
+              className="input"
+              value={src || ""}
+              onChange={(e) => update(i, e.target.value)}
+              placeholder="https://... or upload"
+            />
+            <MediaUpload
+              value={src || ""}
+              onChange={(url) => update(i, url)}
+              label="Upload"
+              compact
+            />
+          </div>
+
+          <div style={{ display: "flex", flexDirection: "column", gap: 4 }}>
+            <MiniBtn onClick={() => move(i, -1)} title="Move up">↑</MiniBtn>
+            <MiniBtn onClick={() => move(i,  1)} title="Move down">↓</MiniBtn>
+            <MiniBtn onClick={() => remove(i)} danger title="Remove">×</MiniBtn>
+          </div>
+        </div>
+      ))}
+
+      {images.length < 8 && (
+        <button
+          type="button"
+          className="btn btn-ghost btn-sm"
+          style={{ alignSelf: "flex-start" }}
+          onClick={add}
+        >
+          + Add photo
         </button>
       )}
     </div>
