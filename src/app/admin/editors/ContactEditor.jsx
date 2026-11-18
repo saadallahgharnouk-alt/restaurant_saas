@@ -1,5 +1,5 @@
-import React, { useState, useEffect } from "react";
-import { useContent } from "../../../lib/content-store";
+import React, { useState } from "react";
+import { useContent } from "../../../lib/content-context.js";
 
 /* ───────────────────────────────────────────────────────────────
    Contact Channels Editor (Req 10)
@@ -31,65 +31,49 @@ export default function ContactEditor() {
   const { content, updateContent, saveContent, status } = useContent();
   const contact = content?.contact;
 
-  const [phone, setPhone] = useState("");
-  const [whatsapp, setWhatsapp] = useState("");
-  const [greeting, setGreeting] = useState("");
-  const [ctaLabel, setCtaLabel] = useState("");
-  const [hours, setHours] = useState([]);
+  const [whatsappDraft, setWhatsappDraft] = useState(null);
   const [errors, setErrors] = useState({});
-
-  // Sync from store
-  useEffect(() => {
-    if (contact) {
-      setPhone(contact.phoneNumber || "");
-      setWhatsapp(contact.whatsappNumber || "");
-      setGreeting(contact.whatsappGreeting || "");
-      setCtaLabel(contact.whatsappCtaLabel || "");
-      setHours(
-        contact.hours && contact.hours.length === 7
-          ? structuredClone(contact.hours)
-          : DAYS.map((day) => ({ day, open: "11:00", close: "23:00", closed: false }))
-      );
-    }
-  }, [contact]);
+  const phone = contact?.phoneNumber ?? "";
+  const whatsapp = whatsappDraft ?? contact?.whatsappNumber ?? "";
+  const greeting = contact?.whatsappGreeting ?? "";
+  const ctaLabel = contact?.whatsappCtaLabel ?? "";
+  const hours = contact?.hours?.length === DAYS.length
+    ? contact.hours
+    : DAYS.map((day) => ({ day, open: "11:00", close: "23:00", closed: false }));
 
   function clearError(field) {
     setErrors((prev) => { const n = { ...prev }; delete n[field]; return n; });
   }
 
   function handlePhoneChange(value) {
-    setPhone(value);
     updateContent("contact.phoneNumber", value);
     clearError("phone");
   }
 
   function handleWhatsappChange(value) {
-    setWhatsapp(value);
+    setWhatsappDraft(value);
     clearError("whatsapp");
     // Don't normalize on every keystroke — only on blur
   }
 
   function handleWhatsappBlur() {
-    const normalized = normalizeWhatsApp(whatsapp);
-    setWhatsapp(normalized);
-    updateContent("contact.whatsappNumber", normalized);
+    if (whatsappDraft === null) return;
+    updateContent("contact.whatsappNumber", normalizeWhatsApp(whatsappDraft));
+    setWhatsappDraft(null);
   }
 
   function handleGreetingChange(value) {
-    setGreeting(value);
     updateContent("contact.whatsappGreeting", value);
     clearError("greeting");
   }
 
   function handleCtaLabelChange(value) {
-    setCtaLabel(value);
     updateContent("contact.whatsappCtaLabel", value);
   }
 
   function handleHourChange(index, field, value) {
     const updated = [...hours];
     updated[index] = { ...updated[index], [field]: value };
-    setHours(updated);
     updateContent("contact.hours", updated);
     clearError(`hours[${index}]`);
   }

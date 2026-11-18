@@ -1,5 +1,5 @@
-import React, { useState, useEffect } from "react";
-import { useContent } from "../../../lib/content-store";
+import React, { useState } from "react";
+import { useContent } from "../../../lib/content-context.js";
 import MediaUpload from "../../../components/MediaUpload";
 
 /* ───────────────────────────────────────────────────────────────
@@ -16,19 +16,13 @@ function generateId() {
 
 export default function ItemEditor() {
   const { content, updateContent, saveContent, status } = useContent();
-  const items = content?.menu?.items;
+  const items = content?.menu?.items ?? [];
   const categories = content?.menu?.categories;
 
-  const [local, setLocal] = useState([]);
   const [errors, setErrors] = useState({});
   const [editingIndex, setEditingIndex] = useState(null);
 
-  useEffect(() => {
-    if (items) setLocal(structuredClone(items));
-  }, [items]);
-
   function push(updated) {
-    setLocal(updated);
     updateContent("menu.items", updated);
   }
 
@@ -44,33 +38,33 @@ export default function ItemEditor() {
       photoUrl: "",
       active: true,
     };
-    const updated = [...local, newItem];
+    const updated = [...items, newItem];
     push(updated);
     setEditingIndex(updated.length - 1);
   }
 
   function handleUpdate(index, field, value) {
-    const updated = [...local];
+    const updated = [...items];
     updated[index] = { ...updated[index], [field]: value };
     push(updated);
     setErrors((prev) => { const n = { ...prev }; delete n[`${index}.${field}`]; return n; });
   }
 
   function handleDelete(index) {
-    push(local.filter((_, i) => i !== index));
+    push(items.filter((_, i) => i !== index));
     if (editingIndex === index) setEditingIndex(null);
     else if (editingIndex !== null && editingIndex > index) setEditingIndex(editingIndex - 1);
   }
 
   function handleToggleActive(index) {
-    const updated = [...local];
+    const updated = [...items];
     updated[index] = { ...updated[index], active: !updated[index].active };
     push(updated);
   }
 
   function validate() {
     const errs = {};
-    local.forEach((item, i) => {
+    items.forEach((item, i) => {
       if (!item.name || item.name.trim().length < 1)
         errs[`${i}.name`] = "Name is required (1-80 chars).";
       else if (item.name.length > 80)
@@ -113,7 +107,7 @@ export default function ItemEditor() {
             Menu Items
           </h2>
           <p style={{ fontSize: 14, color: "var(--fg-mid)", marginTop: 4 }}>
-            {local.length} item{local.length !== 1 ? "s" : ""} · Click to edit
+            {items.length} item{items.length !== 1 ? "s" : ""} · Click to edit
           </p>
         </div>
         <div style={{ display: "flex", gap: 8 }}>
@@ -125,14 +119,14 @@ export default function ItemEditor() {
       </div>
 
       {/* Item list */}
-      {local.length === 0 && (
+      {items.length === 0 && (
         <div style={{ padding: 40, textAlign: "center", color: "var(--fg-faint)" }}>
           No items yet. Click "+ Add Item" to create one.
         </div>
       )}
 
       <div style={{ display: "flex", flexDirection: "column", gap: 8 }}>
-        {local.map((item, i) => (
+        {items.map((item, i) => (
           <div key={item.id}>
             {/* Collapsed row */}
             <div

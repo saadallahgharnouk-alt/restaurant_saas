@@ -1,7 +1,7 @@
 import React, { useEffect, useState } from 'react';
 import { Link, NavLink, Outlet, useLocation, useNavigate } from 'react-router-dom';
-import { useAuth } from '../lib/auth';
-import { useContent } from '../lib/content-store';
+import { useAuth } from '../lib/auth-context.js';
+import { useContent } from '../lib/content-context.js';
 import WhatsAppCTA from './WhatsAppCTA';
 
 /**
@@ -16,6 +16,12 @@ export default function Layout() {
 
   const [scrolled, setScrolled] = useState(false);
   const [open, setOpen]         = useState(false);
+  const [previousPathname, setPreviousPathname] = useState(pathname);
+
+  if (pathname !== previousPathname) {
+    setPreviousPathname(pathname);
+    setOpen(false);
+  }
 
   useEffect(() => {
     const onScroll = () => setScrolled(window.scrollY > 8);
@@ -23,9 +29,6 @@ export default function Layout() {
     onScroll();
     return () => window.removeEventListener('scroll', onScroll);
   }, []);
-
-  // Close mobile menu on navigation
-  useEffect(() => { setOpen(false); }, [pathname]);
 
   const branding = content?.branding;
   const contact  = content?.contact;

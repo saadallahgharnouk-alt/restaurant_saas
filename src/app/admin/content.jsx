@@ -1,6 +1,6 @@
 import React from "react";
 import { Routes, Route, NavLink, Navigate } from "react-router-dom";
-import { useContent } from "../../lib/content-store";
+import { useContent } from "../../lib/content-context.js";
 
 import BrandingEditor from "./editors/BrandingEditor";
 import LandingEditor  from "./editors/LandingEditor";

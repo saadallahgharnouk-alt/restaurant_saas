@@ -1,5 +1,5 @@
-import React, { useState, useEffect } from "react";
-import { useContent } from "../../../lib/content-store";
+import React, { useState } from "react";
+import { useContent } from "../../../lib/content-context.js";
 import MediaUpload from "../../../components/MediaUpload";
 
 /* ───────────────────────────────────────────────────────────────
@@ -10,27 +10,14 @@ import MediaUpload from "../../../components/MediaUpload";
 
 export default function BrandingEditor() {
   const { content, updateContent, saveContent, status } = useContent();
-  const branding = content?.branding;
-
-  const [name, setName] = useState("");
-  const [tagline, setTagline] = useState("");
-  const [logoUrl, setLogoUrl] = useState("");
+  const { restaurantName: name = "", tagline = "", logoUrl = "" } = content?.branding ?? {};
   const [errors, setErrors] = useState({});
-
-  // Sync local state from content store
-  useEffect(() => {
-    if (branding) {
-      setName(branding.restaurantName || "");
-      setTagline(branding.tagline || "");
-      setLogoUrl(branding.logoUrl || "");
-    }
-  }, [branding]);
 
   // Validation
   function validate() {
     const errs = {};
-    if (name.length < 1) errs.name = "Name must be at least 1 character.";
-    else if (name.length > 80) errs.name = "Name must be at most 80 characters.";
+    if (name.length < 1) errs.restaurantName = "Name must be at least 1 character.";
+    else if (name.length > 80) errs.restaurantName = "Name must be at most 80 characters.";
 
     if (tagline.length > 160) errs.tagline = "Tagline must be at most 160 characters.";
 
@@ -45,16 +32,7 @@ export default function BrandingEditor() {
   }
 
   function handleChange(field, value) {
-    if (field === "name") {
-      setName(value);
-      updateContent("branding.restaurantName", value);
-    } else if (field === "tagline") {
-      setTagline(value);
-      updateContent("branding.tagline", value);
-    } else if (field === "logoUrl") {
-      setLogoUrl(value);
-      updateContent("branding.logoUrl", value);
-    }
+    updateContent(`branding.${field}`, value);
     // Clear field error on change
     setErrors((prev) => {
       const next = { ...prev };
@@ -94,20 +72,22 @@ export default function BrandingEditor() {
       </div>
 
       {/* Restaurant Name */}
-      <FieldGroup label="Restaurant Name" error={errors.name} charCount={`${name.length}/80`}>
+      <FieldGroup id="restaurant-name" label="Restaurant Name" error={errors.restaurantName} charCount={`${name.length}/80`}>
         <input
+          id="restaurant-name"
           className="input"
           type="text"
           value={name}
-          onChange={(e) => handleChange("name", e.target.value)}
+          onChange={(e) => handleChange("restaurantName", e.target.value)}
           maxLength={80}
           placeholder="e.g. Dar Zellij"
         />
       </FieldGroup>
 
       {/* Tagline */}
-      <FieldGroup label="Tagline" error={errors.tagline} charCount={`${tagline.length}/160`}>
+      <FieldGroup id="restaurant-tagline" label="Tagline" error={errors.tagline} charCount={`${tagline.length}/160`}>
         <input
+          id="restaurant-tagline"
           className="input"
           type="text"
           value={tagline}
@@ -118,8 +98,9 @@ export default function BrandingEditor() {
       </FieldGroup>
 
       {/* Logo */}
-      <FieldGroup label="Logo" error={errors.logoUrl}>
+      <FieldGroup id="restaurant-logo" label="Logo" error={errors.logoUrl}>
         <input
+          id="restaurant-logo"
           className="input"
           type="text"
           value={logoUrl}
@@ -138,11 +119,12 @@ export default function BrandingEditor() {
 
 /* ─── Shared field wrapper ────────────────────────────────────────────────── */
 
-function FieldGroup({ label, error, charCount, children }) {
+function FieldGroup({ id, label, error, charCount, children }) {
   return (
     <div style={{ marginBottom: 24 }}>
       <div style={{ display: "flex", justifyContent: "space-between", alignItems: "baseline", marginBottom: 6 }}>
         <label
+          htmlFor={id}
           style={{
             fontFamily: "var(--font-mono)",
             fontSize: 11,

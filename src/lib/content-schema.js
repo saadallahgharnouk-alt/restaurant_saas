@@ -271,7 +271,7 @@ export const DEFAULT_CONTENT = {
     embedUrl: "",
   },
   contact: {
-    phoneNumber: "+212 5XX-XXXXXX",
+    phoneNumber: "",
     whatsappNumber: "+212600000000",
     whatsappGreeting: "Hello! I'd like to place an order.",
     whatsappCtaLabel: "Order on WhatsApp",

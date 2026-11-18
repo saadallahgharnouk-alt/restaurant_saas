@@ -1,5 +1,5 @@
 import React, { useMemo, useState } from 'react';
-import { useContent } from '../lib/content-store';
+import { useContent } from '../lib/content-context.js';
 import WhatsAppCTA from '../components/WhatsAppCTA';
 import MenuCard from '../components/MenuCard';
 

@@ -1,6 +1,6 @@
 import React, { useMemo } from 'react';
 import { Link } from 'react-router-dom';
-import { useContent } from '../lib/content-store';
+import { useContent } from '../lib/content-context.js';
 import MapEmbed from '../components/MapEmbed';
 import WhatsAppCTA from '../components/WhatsAppCTA';
 

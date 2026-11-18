@@ -1,5 +1,5 @@
-import React, { useState, useEffect } from "react";
-import { useContent } from "../../../lib/content-store";
+import React, { useState } from "react";
+import { useContent } from "../../../lib/content-context.js";
 
 /* ───────────────────────────────────────────────────────────────
    Menu Category Editor (Req 11)
@@ -19,55 +19,46 @@ function slugify(name) {
 
 export default function CategoryEditor() {
   const { content, updateContent, saveContent, status } = useContent();
-  const categories = content?.menu?.categories;
+  const categories = content?.menu?.categories ?? [];
   const items = content?.menu?.items;
 
-  const [local, setLocal] = useState([]);
   const [errors, setErrors] = useState({});
   const [confirmDelete, setConfirmDelete] = useState(null); // { index, itemCount }
-
-  // Sync from store
-  useEffect(() => {
-    if (categories) {
-      setLocal(structuredClone(categories));
-    }
-  }, [categories]);
 
   function push(updated) {
     // Reassign order values to match display position
     const ordered = updated.map((c, i) => ({ ...c, order: i }));
-    setLocal(ordered);
     updateContent("menu.categories", ordered);
   }
 
   function handleNameChange(index, value) {
-    const updated = [...local];
+    const updated = [...categories];
     updated[index] = { ...updated[index], name: value, slug: slugify(value) };
     push(updated);
     setErrors((prev) => { const n = { ...prev }; delete n[index]; return n; });
   }
 
   function handleAdd() {
-    const newCat = { id: generateId(), name: "", slug: "", order: local.length };
-    push([...local, newCat]);
+    const newCat = { id: generateId(), name: "", slug: "", order: categories.length };
+    push([...categories, newCat]);
   }
 
   function handleMoveUp(index) {
     if (index === 0) return;
-    const updated = [...local];
+    const updated = [...categories];
     [updated[index - 1], updated[index]] = [updated[index], updated[index - 1]];
     push(updated);
   }
 
   function handleMoveDown(index) {
-    if (index >= local.length - 1) return;
-    const updated = [...local];
+    if (index >= categories.length - 1) return;
+    const updated = [...categories];
     [updated[index], updated[index + 1]] = [updated[index + 1], updated[index]];
     push(updated);
   }
 
   function handleRequestDelete(index) {
-    const cat = local[index];
+    const cat = categories[index];
     const affectedCount = (items || []).filter((it) => it.categoryId === cat.id).length;
     if (affectedCount > 0) {
       setConfirmDelete({ index, itemCount: affectedCount, name: cat.name });
@@ -77,8 +68,8 @@ export default function CategoryEditor() {
   }
 
   function doDelete(index) {
-    const cat = local[index];
-    const updated = local.filter((_, i) => i !== index);
+    const cat = categories[index];
+    const updated = categories.filter((_, i) => i !== index);
     push(updated);
 
     // Nullify categoryId on affected items
@@ -93,7 +84,7 @@ export default function CategoryEditor() {
 
   function validate() {
     const errs = {};
-    local.forEach((c, i) => {
+    categories.forEach((c, i) => {
       if (!c.name || c.name.trim().length < 1)
         errs[i] = "Name must be at least 1 character.";
       else if (c.name.length > 40)
@@ -133,14 +124,14 @@ export default function CategoryEditor() {
       </div>
 
       {/* Category list */}
-      {local.length === 0 && (
+      {categories.length === 0 && (
         <div style={{ padding: 40, textAlign: "center", color: "var(--fg-faint)" }}>
           No categories yet. Click "+ Add Category" to create one.
         </div>
       )}
 
       <div style={{ display: "flex", flexDirection: "column", gap: 8 }}>
-        {local.map((cat, i) => (
+        {categories.map((cat, i) => (
           <div
             key={cat.id}
             style={{
@@ -175,7 +166,7 @@ export default function CategoryEditor() {
 
             <div style={{ display: "flex", gap: 4 }}>
               <MiniBtn onClick={() => handleMoveUp(i)} title="Move up" disabled={i === 0}>↑</MiniBtn>
-              <MiniBtn onClick={() => handleMoveDown(i)} title="Move down" disabled={i >= local.length - 1}>↓</MiniBtn>
+              <MiniBtn onClick={() => handleMoveDown(i)} title="Move down" disabled={i >= categories.length - 1}>↓</MiniBtn>
               <MiniBtn onClick={() => handleRequestDelete(i)} title="Delete" danger>×</MiniBtn>
             </div>
           </div>

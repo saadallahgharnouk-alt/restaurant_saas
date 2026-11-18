@@ -1,12 +1,9 @@
-import React, { createContext, useContext, useState, useEffect, useCallback, useRef } from "react";
+import { useState, useEffect, useCallback } from "react";
+import { ContentContext } from "./content-context.js";
 import { validate, DEFAULT_CONTENT, serialize, assertIntegrity } from "./content-schema.js";
 
 const STORAGE_KEY = "restauhub.cms.v1";
 const API_BASE = import.meta.env.VITE_API_URL || "http://localhost:5000";
-
-// ─── Context ─────────────────────────────────────────────────────────────────
-
-const ContentContext = createContext(null);
 
 // ─── Deep-set utility ────────────────────────────────────────────────────────
 
@@ -145,20 +142,19 @@ export function ContentProvider({ children }) {
   const saveContent = useCallback(async () => {
     setStatus("saving");
 
-    const currentContent = contentRef.current;
-    if (!currentContent) {
+    if (!content) {
       setStatus("loaded");
       return;
     }
 
     // Run integrity checks before persisting
-    const integrity = assertIntegrity(currentContent);
+    const integrity = assertIntegrity(content);
     if (!integrity.ok) {
       console.warn("[Content_Store] Integrity check failed before save:", integrity.errors);
       // Still allow save (data may be in-progress), but log for debugging
     }
 
-    const json = serialize(currentContent);
+    const json = serialize(content);
 
     try {
       const res = await fetch(`${API_BASE}/api/content`, {
@@ -181,12 +177,6 @@ export function ContentProvider({ children }) {
       localStorage.setItem(STORAGE_KEY, json);
       setStatus("offline");
     }
-  }, []);
-
-  // Keep a ref to current content so saveContent always has latest
-  const contentRef = useRef(content);
-  useEffect(() => {
-    contentRef.current = content;
   }, [content]);
 
   // ─── Context value ───────────────────────────────────────────────────────
@@ -203,18 +193,4 @@ export function ContentProvider({ children }) {
       {children}
     </ContentContext.Provider>
   );
-}
-
-// ─── Hook ────────────────────────────────────────────────────────────────────
-
-/**
- * Access CMS content and operations.
- * @returns {{ content: object|null, updateContent: (path: string, value: any) => void, saveContent: () => Promise<void>, status: "loaded"|"saving"|"saved"|"unsaved"|"offline" }}
- */
-export function useContent() {
-  const ctx = useContext(ContentContext);
-  if (ctx === null) {
-    throw new Error("useContent must be used within a ContentProvider");
-  }
-  return ctx;
 }

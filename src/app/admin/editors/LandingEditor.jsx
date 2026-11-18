@@ -1,5 +1,5 @@
-import React, { useState, useEffect, useCallback } from "react";
-import { useContent } from "../../../lib/content-store";
+import React, { useState } from "react";
+import { useContent } from "../../../lib/content-context.js";
 import MediaUpload from "../../../components/MediaUpload";
 
 /* ───────────────────────────────────────────────────────────────
@@ -11,53 +11,40 @@ export default function LandingEditor() {
   const { content, updateContent, saveContent, status } = useContent();
   const landing = content?.landing;
 
-  const [local, setLocal] = useState(null);
   const [errors, setErrors] = useState({});
 
-  // Sync from store
-  useEffect(() => {
-    if (landing) {
-      setLocal(structuredClone(landing));
-    }
-  }, [landing]);
-
-  const set = useCallback((path, value) => {
-    setLocal((prev) => {
-      const next = structuredClone(prev);
-      setNestedValue(next, path, value);
-      return next;
-    });
+  function set(path, value) {
     updateContent(`landing.${path}`, value);
     setErrors((prev) => {
       const next = { ...prev };
       delete next[path];
       return next;
     });
-  }, [updateContent]);
+  }
 
   function validate() {
-    if (!local) return false;
+    if (!landing) return false;
     const errs = {};
 
-    if (!local.heroHeadline || local.heroHeadline.length < 4)
+    if (!landing.heroHeadline || landing.heroHeadline.length < 4)
       errs.heroHeadline = "Must be at least 4 characters.";
-    else if (local.heroHeadline.length > 140)
+    else if (landing.heroHeadline.length > 140)
       errs.heroHeadline = "Must be at most 140 characters.";
 
-    if (!local.heroLead || local.heroLead.length < 20)
+    if (!landing.heroLead || landing.heroLead.length < 20)
       errs.heroLead = "Must be at least 20 characters.";
-    else if (local.heroLead.length > 400)
+    else if (landing.heroLead.length > 400)
       errs.heroLead = "Must be at most 400 characters.";
 
-    if (!local.marqueeItems || local.marqueeItems.length < 1)
+    if (!landing.marqueeItems || landing.marqueeItems.length < 1)
       errs.marqueeItems = "At least 1 highlight pill is required.";
 
-    if (!local.features) errs.features = "Features list is required.";
-    else if (local.features.length > 6)
+    if (!landing.features) errs.features = "Features list is required.";
+    else if (landing.features.length > 6)
       errs.features = "At most 6 feature rows are allowed.";
 
-    if (local.features) {
-      local.features.forEach((f, i) => {
+    if (landing.features) {
+      landing.features.forEach((f, i) => {
         if (!f.title || f.title.trim() === "")
           errs[`features[${i}].title`] = `Feature ${i + 1}: title is required.`;
         if (!f.body || f.body.trim() === "")
@@ -74,7 +61,7 @@ export default function LandingEditor() {
     await saveContent();
   }
 
-  if (!local) return <div className="loading-spinner" />;
+  if (!landing) return <div className="loading-spinner" />;
 
   return (
     <div>
@@ -102,11 +89,11 @@ export default function LandingEditor() {
       <Field
         label="Hero Headline"
         error={errors.heroHeadline}
-        charCount={`${(local.heroHeadline || "").length}/140`}
+        charCount={`${(landing.heroHeadline || "").length}/140`}
       >
         <input
           className="input"
-          value={local.heroHeadline || ""}
+          value={landing.heroHeadline || ""}
           onChange={(e) => set("heroHeadline", e.target.value)}
           maxLength={140}
           placeholder="e.g. Flavors of Morocco, served with soul."
@@ -117,11 +104,11 @@ export default function LandingEditor() {
       <Field
         label="Hero Lead Paragraph"
         error={errors.heroLead}
-        charCount={`${(local.heroLead || "").length}/400`}
+        charCount={`${(landing.heroLead || "").length}/400`}
       >
         <textarea
           className="input"
-          value={local.heroLead || ""}
+          value={landing.heroLead || ""}
           onChange={(e) => set("heroLead", e.target.value)}
           maxLength={400}
           rows={3}
@@ -134,12 +121,12 @@ export default function LandingEditor() {
       <Field label="Hero Image" error={errors.heroImageUrl}>
         <input
           className="input"
-          value={local.heroImageUrl || ""}
+          value={landing.heroImageUrl || ""}
           onChange={(e) => set("heroImageUrl", e.target.value)}
           placeholder="https://images.unsplash.com/... or upload below"
         />
         <MediaUpload
-          value={local.heroImageUrl || ""}
+          value={landing.heroImageUrl || ""}
           onChange={(url) => set("heroImageUrl", url)}
           label="Upload hero image"
         />
@@ -153,7 +140,7 @@ export default function LandingEditor() {
           Small pills shown under the hero (e.g. "Fresh", "Halal", "Seasonal"). At least 1 required.
         </p>
         <ListEditor
-          items={local.marqueeItems || []}
+          items={landing.marqueeItems || []}
           onChange={(items) => set("marqueeItems", items)}
           placeholder="e.g. Tagine"
           maxItems={20}
@@ -166,15 +153,15 @@ export default function LandingEditor() {
       <div style={{ marginBottom: 12 }}>
         <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
           <label style={{ fontFamily: "var(--font-mono)", fontSize: 11, letterSpacing: "0.12em", textTransform: "uppercase", color: "var(--fg-faint)" }}>
-            Feature Rows ({local.features?.length || 0}/6)
+            Feature Rows ({landing.features?.length || 0}/6)
           </label>
-          {(local.features?.length || 0) < 6 && (
+          {(landing.features?.length || 0) < 6 && (
             <button
               type="button"
               className="btn btn-ghost btn-sm"
               onClick={() => {
                 const newFeature = { eyebrow: "", title: "", body: "", bullets: [], ctaLabel: "", ctaHref: "", imageUrl: "" };
-                set("features", [...(local.features || []), newFeature]);
+                set("features", [...(landing.features || []), newFeature]);
               }}
             >
               + Add Row
@@ -184,30 +171,30 @@ export default function LandingEditor() {
         {errors.features && <ErrorText>{errors.features}</ErrorText>}
       </div>
 
-      {(local.features || []).map((feature, i) => (
+      {(landing.features || []).map((feature, i) => (
         <FeatureRowEditor
           key={i}
           index={i}
           feature={feature}
           errors={errors}
           onChange={(updated) => {
-            const features = [...local.features];
+            const features = [...landing.features];
             features[i] = updated;
             set("features", features);
           }}
           onRemove={() => {
-            const features = local.features.filter((_, idx) => idx !== i);
+            const features = landing.features.filter((_, idx) => idx !== i);
             set("features", features);
           }}
           onMoveUp={() => {
             if (i === 0) return;
-            const features = [...local.features];
+            const features = [...landing.features];
             [features[i - 1], features[i]] = [features[i], features[i - 1]];
             set("features", features);
           }}
           onMoveDown={() => {
-            if (i >= (local.features || []).length - 1) return;
-            const features = [...local.features];
+            if (i >= (landing.features || []).length - 1) return;
+            const features = [...landing.features];
             [features[i], features[i + 1]] = [features[i + 1], features[i]];
             set("features", features);
           }}
@@ -451,18 +438,4 @@ function MiniBtn({ onClick, title, danger, children }) {
 
 function Divider() {
   return <div style={{ borderTop: "1px solid var(--rule)", margin: "28px 0" }} />;
-}
-
-/* ─── Deep set utility ────────────────────────────────────────────────────── */
-
-function setNestedValue(obj, path, value) {
-  const keys = path.replace(/\[(\d+)\]/g, ".$1").split(".");
-  let current = obj;
-  for (let i = 0; i < keys.length - 1; i++) {
-    const key = /^\d+$/.test(keys[i]) ? Number(keys[i]) : keys[i];
-    if (current[key] === undefined) current[key] = /^\d+$/.test(keys[i + 1]) ? [] : {};
-    current = current[key];
-  }
-  const lastKey = /^\d+$/.test(keys[keys.length - 1]) ? Number(keys[keys.length - 1]) : keys[keys.length - 1];
-  current[lastKey] = value;
 }

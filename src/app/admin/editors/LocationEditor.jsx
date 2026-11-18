@@ -1,5 +1,5 @@
-import React, { useState, useEffect, useRef } from "react";
-import { useContent } from "../../../lib/content-store";
+import React, { useState, useEffect } from "react";
+import { useContent } from "../../../lib/content-context.js";
 
 /* ───────────────────────────────────────────────────────────────
    Location & Map Editor (Req 9)
@@ -9,71 +9,69 @@ import { useContent } from "../../../lib/content-store";
 
 const EMBED_PATTERN = /^https:\/\/www\.google\.com\/maps\/embed\?/;
 
+function isValidLat(value) {
+  return value >= -90 && value <= 90;
+}
+
+function isValidLng(value) {
+  return value >= -180 && value <= 180;
+}
+
+function coordinatesEmbedUrl(latitude, longitude) {
+  return `https://www.google.com/maps/embed?pb=!1m14!1m12!1m3!1d3000!2d${longitude}!3d${latitude}!2m3!1f0!2f0!3f0!3m2!1i1024!2i768!4f13.1!5e0!3m2!1sen!2sma!4v1`;
+}
+
+function computePreviewSrc(embed, latitude, longitude) {
+  if (EMBED_PATTERN.test(embed)) return embed;
+  const lat = parseFloat(latitude);
+  const lng = parseFloat(longitude);
+  if (isValidLat(lat) && isValidLng(lng)) return coordinatesEmbedUrl(lat, lng);
+
+  return "https://www.google.com/maps/embed?pb=!1m14!1m12!1m3!1d3000000!2d-7.0926!3d31.7917!2m3!1f0!2f0!3f0!3m2!1i1024!2i768!4f13.1!5e0!3m2!1sen!2sma!4v1";
+}
+
 export default function LocationEditor() {
   const { content, updateContent, saveContent, status } = useContent();
   const location = content?.location;
 
-  const [address, setAddress] = useState("");
-  const [lat, setLat] = useState("");
-  const [lng, setLng] = useState("");
-  const [embedUrl, setEmbedUrl] = useState("");
+  const [latitudeDraft, setLatitudeDraft] = useState(null);
+  const [longitudeDraft, setLongitudeDraft] = useState(null);
   const [errors, setErrors] = useState({});
-  const previewTimer = useRef(null);
   const [previewSrc, setPreviewSrc] = useState("");
+  const address = location?.address ?? "";
+  const lat = latitudeDraft ?? String(location?.latitude ?? "");
+  const lng = longitudeDraft ?? String(location?.longitude ?? "");
+  const embedUrl = location?.embedUrl ?? "";
 
-  // Sync from store
   useEffect(() => {
-    if (location) {
-      setAddress(location.address || "");
-      setLat(location.latitude != null ? String(location.latitude) : "");
-      setLng(location.longitude != null ? String(location.longitude) : "");
-      setEmbedUrl(location.embedUrl || "");
-    }
-  }, [location]);
-
-  // Live preview — debounced 500ms
-  useEffect(() => {
-    if (previewTimer.current) clearTimeout(previewTimer.current);
-    previewTimer.current = setTimeout(() => {
+    const previewTimer = setTimeout(() => {
       setPreviewSrc(computePreviewSrc(embedUrl, lat, lng));
     }, 500);
-    return () => clearTimeout(previewTimer.current);
+    return () => clearTimeout(previewTimer);
   }, [embedUrl, lat, lng]);
-
-  function computePreviewSrc(embed, latitude, longitude) {
-    // If embedUrl is valid, use it
-    if (embed && EMBED_PATTERN.test(embed)) return embed;
-    // Otherwise derive from lat/lng
-    const la = parseFloat(latitude);
-    const ln = parseFloat(longitude);
-    if (isValidLat(la) && isValidLng(ln)) {
-      return `https://www.google.com/maps/embed?pb=!1m14!1m12!1m3!1d3000!2d${ln}!3d${la}!2m3!1f0!2f0!3f0!3m2!1i1024!2i768!4f13.1!5e0!3m2!1sen!2sma!4v1`;
-    }
-    // Fallback: Morocco overview
-    return `https://www.google.com/maps/embed?pb=!1m14!1m12!1m3!1d3000000!2d-7.0926!3d31.7917!2m3!1f0!2f0!3f0!3m2!1i1024!2i768!4f13.1!5e0!3m2!1sen!2sma!4v1`;
-  }
-
-  function isValidLat(v) { return typeof v === "number" && !isNaN(v) && v >= -90 && v <= 90; }
-  function isValidLng(v) { return typeof v === "number" && !isNaN(v) && v >= -180 && v <= 180; }
 
   function handleChange(field, value) {
     setErrors((prev) => { const n = { ...prev }; delete n[field]; return n; });
 
     if (field === "address") {
-      setAddress(value);
       updateContent("location.address", value);
     } else if (field === "latitude") {
-      setLat(value);
       const num = value === "" ? null : parseFloat(value);
-      if (value !== "" && (isNaN(num) || num < -90 || num > 90)) return; // don't update store with invalid
+      if (num !== null && !isValidLat(num)) {
+        setLatitudeDraft(value);
+        return;
+      }
+      setLatitudeDraft(null);
       updateContent("location.latitude", num);
     } else if (field === "longitude") {
-      setLng(value);
       const num = value === "" ? null : parseFloat(value);
-      if (value !== "" && (isNaN(num) || num < -180 || num > 180)) return;
+      if (num !== null && !isValidLng(num)) {
+        setLongitudeDraft(value);
+        return;
+      }
+      setLongitudeDraft(null);
       updateContent("location.longitude", num);
     } else if (field === "embedUrl") {
-      setEmbedUrl(value);
       updateContent("location.embedUrl", value);
     }
   }
@@ -82,12 +80,12 @@ export default function LocationEditor() {
     const errs = {};
     if (lat !== "") {
       const num = parseFloat(lat);
-      if (isNaN(num) || num < -90 || num > 90)
+      if (!isValidLat(num))
         errs.latitude = "Must be between -90 and 90.";
     }
     if (lng !== "") {
       const num = parseFloat(lng);
-      if (isNaN(num) || num < -180 || num > 180)
+      if (!isValidLng(num))
         errs.longitude = "Must be between -180 and 180.";
     }
     if (embedUrl && !EMBED_PATTERN.test(embedUrl))
@@ -105,9 +103,7 @@ export default function LocationEditor() {
     const la = parseFloat(lat);
     const ln = parseFloat(lng);
     if (!isValidLat(la) || !isValidLng(ln)) return;
-    const generated = `https://www.google.com/maps/embed?pb=!1m14!1m12!1m3!1d3000!2d${ln}!3d${la}!2m3!1f0!2f0!3f0!3m2!1i1024!2i768!4f13.1!5e0!3m2!1sen!2sma!4v1`;
-    setEmbedUrl(generated);
-    updateContent("location.embedUrl", generated);
+    updateContent("location.embedUrl", coordinatesEmbedUrl(la, ln));
   }
 
   if (!content) return <div className="loading-spinner" />;

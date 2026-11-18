@@ -1,4 +1,5 @@
-import React, { createContext, useContext, useState, useEffect, useCallback } from "react";
+import React, { useState, useEffect, useCallback } from "react";
+import { AuthContext, useAuth } from "./auth-context.js";
 
 // ─── Constants ───────────────────────────────────────────────────────────────
 
@@ -78,8 +79,6 @@ function clearSession() {
 
 // ─── Context ─────────────────────────────────────────────────────────────────
 
-const AuthContext = createContext(null);
-
 /**
  * AuthProvider — wraps the app, provides auth state + actions.
  */
@@ -120,17 +119,6 @@ export function AuthProvider({ children }) {
       {children}
     </AuthContext.Provider>
   );
-}
-
-/**
- * useAuth hook — access auth state and actions.
- */
-export function useAuth() {
-  const ctx = useContext(AuthContext);
-  if (ctx === null) {
-    throw new Error("useAuth must be used within an AuthProvider");
-  }
-  return ctx;
 }
 
 // ─── Auth Gate ───────────────────────────────────────────────────────────────
