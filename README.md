@@ -1,69 +1,36 @@
-# Restaurant Site
+# Restaurant Website & CMS
 
-A modern restaurant website with a built-in **manager edit screen**. The
-owner can change every text, photo, dish, address, phone number and
-opening hour from the browser — no code required.
+A restaurant website with a searchable menu and a browser-based editor. Guests can browse dishes by category, look up an ingredient, or contact the restaurant on WhatsApp. A manager can update the menu, photos, location, and opening hours from the editor.
 
-## What's on the site
+**Stack** · React 19, Vite, React Router, Express 5, Multer, and CSS
 
-| Path     | Page                                            |
-| -------- | ----------------------------------------------- |
-| `/`      | Public landing — hero, about, dish preview, map |
-| `/menu`  | Public menu — categories, dishes, search        |
-| `/admin` | Manager edit screen (login required)            |
+![RestauHub menu with dish search, category filters, and prices](docs/menu.webp)
 
-That's it. No table-side QR studio, no order kitchen board, no analytics.
+## Try it locally
 
-## Manager edit screen (`/admin`)
-
-Default login: `admin` / `admin` (override via `VITE_ADMIN_CREDENTIALS`).
-
-Sections the manager can edit:
-
-- **Branding** — restaurant name, tagline, logo
-- **Home page** — hero headline + paragraph + photo, highlight pills,
-  feature rows (each with photo + title + body + bullets + optional CTA)
-- **Menu categories** — Starters / Mains / Desserts / etc., reorderable
-- **Dishes** — name, photo, price + currency (MAD / EUR / USD),
-  description, ingredient pills, hidden/visible toggle
-- **Location & map** — address + latitude/longitude (auto-generates a
-  Google Maps embed) or paste an embed URL directly
-- **Contact** — phone, WhatsApp number, WhatsApp greeting & button
-  label, opening hours per day
-
-Every field that takes an image has a built-in upload control
-(PNG/JPEG/WebP, max 2 MB).
-
-## How it persists
-
-The CMS first tries to talk to the backend at `/api/content`. If the
-backend is unreachable, it falls back to **localStorage** in the
-manager's browser. Image uploads work the same way: the backend stores
-files under `backend/data/uploads/`, but if it's offline the image is
-embedded as a base64 data URI directly into the saved content.
-
-This means **the site is fully runnable with the frontend alone**, which
-is great for static-host deploys (Vercel, Netlify, GitHub Pages). The
-backend only matters once you want photos to persist on a server
-instead of inside the manager's browser.
-
-## Running locally
+Use Node.js 22.12 or newer.
 
 ```bash
-# 1. Install deps
-npm install
-
-# 2. (Optional) Start the CMS backend on :5000
-npm run server
-
-# 3. Start the frontend on :5173
+npm ci
 npm run dev
 ```
 
-Open `http://localhost:5173/` for the site, `/menu` for the menu, and
-`/admin` to log in and start editing.
+Open [localhost:5173](http://localhost:5173). The app starts with sample restaurant content, and the frontend can run on its own.
 
-## Built with
+| Page | What to try |
+| --- | --- |
+| [`/`](http://localhost:5173/) | Browse the homepage, featured dishes, and restaurant details. |
+| [`/menu`](http://localhost:5173/menu) | Search for a dish or ingredient and switch between categories. |
+| [`/admin`](http://localhost:5173/admin) | Sign in with the local demo account (`admin` / `admin`), change the restaurant name under **Branding**, and save. Return to the menu to see the change. |
 
-React 19 · Vite · React Router 7 · Express 5 · Multer · plain CSS
-(no Tailwind, no UI kit, no animation libraries).
+To preview the production build locally, run `npm run build` followed by `npm run preview`.
+
+To store edits on disk, run `npm run server` in a second terminal. The frontend uses `http://localhost:5000` by default. See [`.env.example`](.env.example) for configuration. The browser-only sign-in is intended for local demos. A public deployment would need server-side authentication and authorization for content changes and uploads.
+
+## How it works
+
+- One schema defines branding, landing page sections, menu categories and dishes, location, and contact details. [Content model](src/lib/content-schema.js)
+- React context shares content between the public pages and the editor. The store loads from the API and falls back to browser storage or the bundled sample content. Edits made without the API stay in the current browser. [Frontend content store](src/lib/content-store.jsx)
+- `GET /api/content` loads saved edits and `PUT /api/content` writes them to a JSON file. The upload endpoint accepts PNG, JPEG, and WebP files up to 2 MiB, and the upload control can embed an image as a data URL when the API is unavailable. [Express CMS API](backend/server.js) · [Upload control](src/components/MediaUpload.jsx)
+
+See the [feature list](FEATURES.md) for details on the editor, Google Maps, and WhatsApp integration.

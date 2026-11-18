@@ -78,13 +78,9 @@ function loadFromLocalStorage() {
 export function ContentProvider({ children }) {
   const [content, setContent] = useState(null);
   const [status, setStatus] = useState("loaded");
-  const initializedRef = useRef(false);
 
   // Load content on mount
   useEffect(() => {
-    if (initializedRef.current) return;
-    initializedRef.current = true;
-
     let cancelled = false;
 
     async function init() {
